@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @db.Uuid
+  email    String @unique
+  username String @unique
+  name     String
+  surname  String
+  phone    String?
+  bio      String?
+  website  String?
+  location String?
+  avatar   String?
+  role     Role   @default(USER)
+  
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  posts    Post[]
+  comments Comment[]
+  rememberTokens RememberToken[]
+  
+  @@map("users")
+}
+
+model RememberToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@index([token])
+  @@index([userId])
+  @@map("remember_tokens")
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  excerpt     String?
+  content     String     @db.Text
+  coverImage  String?    @map("cover_image")
+  category    String
+  tags        String[]   @default([])
+  status      PostStatus @default(DRAFT)
+  readTime    Int?       @map("read_time")
+  viewCount   Int        @default(0) @map("view_count")
+  
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  publishedAt DateTime?  @map("published_at")
+  
+  // Relations
+  authorId String @map("author_id") @db.Uuid
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  
+  // İndeksler
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+  @@index([authorId])
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  isApproved Boolean @default(false) @map("is_approved")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  authorId String @map("author_id") @db.Uuid
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postId   String @map("post_id")
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  // Nested comments için (opsiyonel)
+  parentId String? @map("parent_id")
+  parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+  
+  @@index([postId])
+  @@index([authorId])
+  @@map("comments")
+}
+
+model Category {
+  id          String @id @default(cuid())
+  name        String @unique
+  slug        String @unique
+  description String?
+  color       String?
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("categories")
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
