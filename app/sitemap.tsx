@@ -1,8 +1,28 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Gerçek uygulamada blog yazıları API'dan çekilecek
-  const blogPosts = [
+  const staticPages = [
+    {
+      url: "https://myblogapp.vercel.app",
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 1,
+    },
+    {
+      url: "https://myblogapp.vercel.app/hakkimizda",
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+    {
+      url: "https://myblogapp.vercel.app/iletisim",
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    },
+  ];
+
+  const blogPages = [
     {
       id: "1",
       slug: "next-js-15-rehberi",
@@ -13,31 +33,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       slug: "react-hooks-kullanimi",
       lastModified: "2024-11-28",
     },
-  ];
-
-  const staticPages = [
-    {
-      url: "https://yourblog.com",
-      lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: 1,
-    },
-    {
-      url: "https://yourblog.com/hakkimizda",
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-    },
-    {
-      url: "https://yourblog.com/iletisim",
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    },
-  ];
-
-  const blogPages = blogPosts.map((post) => ({
-    url: `https://yourblog.com/blog/${post.id}`,
+  ].map((post) => ({
+    url: `https://myblogapp.vercel.app/blog/${post.id}`,
     lastModified: new Date(post.lastModified),
     changeFrequency: "weekly" as const,
     priority: 0.9,
@@ -50,7 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "javascript",
     "css",
   ].map((category) => ({
-    url: `https://yourblog.com/kategori/${category}`,
+    url: `https://myblogapp.vercel.app/kategori/${category}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.7,

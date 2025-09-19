@@ -8,7 +8,7 @@ interface CategoryProps {
 
 // Kategorileri çeken function
 async function getCategories() {
-  const res = await fetch(`http://localhost:3000/api/category`, {
+  const res = await fetch(`https://myblogapp.vercel.app/api/category`, {
     cache: "no-store", // her istekte güncel veriyi çekmek için
   });
 

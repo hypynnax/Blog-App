@@ -30,7 +30,7 @@ export async function middleware(req: NextRequest) {
   // Protected routes - giriş yapmış kullanıcılar için
   const protectedRoutes = [
     "/dashboard",
-    "/yazılarım",
+    "/yazilarim",
     "/yazi-olustur",
     "/yazi-duzenle",
   ];
@@ -40,12 +40,13 @@ export async function middleware(req: NextRequest) {
 
   // API routes that need authentication
   const protectedApiRoutes = [
-    "/api/posts/my",
-    "/api/posts/drafts",
-    "/api/comments/my",
-    "/api/users/profile",
-    "/api/stats",
+    "/api/auth",
+    "/api/category",
+    "/api/comment",
+    "/api/post",
+    "/api/search",
     "/api/upload",
+    "/api/user",
   ];
 
   // API routes that need admin access

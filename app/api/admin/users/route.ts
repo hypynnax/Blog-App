@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const where: any = {};
 
     const [users, total] = await Promise.all([
-      prisma.users.findMany({
+      prisma.user.findMany({
         where,
         select: {
           id: true,
@@ -28,15 +28,15 @@ export async function GET(request: NextRequest) {
           website: true,
           location: true,
           role: true,
-          email_verified: true,
-          created_at: true,
-          updated_at: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
         },
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       }),
-      prisma.users.count({ where }),
+      prisma.user.count({ where }),
     ]);
 
     return NextResponse.json({

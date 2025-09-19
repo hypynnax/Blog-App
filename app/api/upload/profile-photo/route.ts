@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createRouteHandlerClient } from "@/lib/supabase";
+import { AuthResponse } from "@/types/auth";
 import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient(cookieStore);
+
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user: supabaseUser },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (userError || !supabaseUser) {
+      return NextResponse.json(
+        { success: false, error: "Oturum geçersiz" } as AuthResponse,
+        { status: 401 }
+      );
     }
-
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
@@ -32,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File too large" }, { status: 400 });
     }
 
-    const fileName = `${session.user.id}/${Date.now()}-${file.name}`;
+    const fileName = `${supabaseUser.id}/${Date.now()}-${file.name}`;
 
     const { data, error } = await supabase.storage
       .from("blog-images")

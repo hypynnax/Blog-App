@@ -8,13 +8,15 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/dashboard/",
         "/profil/",
-        "/yazılarım/",
+        "/yazilarim/",
         "/yazi-olustur/",
         "/yazi-duzenle/",
         "/giris/",
         "/kayit/",
+        "/sifremi-unuttum/",
+        "/sifre-sifirla/",
       ],
     },
-    sitemap: "https://yourblog.com/sitemap.xml",
+    sitemap: "https://myblogapp.vercel.app/sitemap.xml",
   };
 }
