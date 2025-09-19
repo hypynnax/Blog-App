@@ -68,9 +68,10 @@ export async function GET(
 // POST - Yeni yorum ekle
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient(cookieStore);
 
@@ -87,7 +88,7 @@ export async function POST(
     }
 
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: { id: true },
     });
 
@@ -148,9 +149,10 @@ export async function POST(
 // PUT - Yorum güncelle
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient(cookieStore);
 
@@ -167,7 +169,7 @@ export async function PUT(
     }
 
     const existingComment = await prisma.comment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingComment) {
@@ -182,7 +184,7 @@ export async function PUT(
     const { content } = body;
 
     const comment = await prisma.comment.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { content },
       include: {
         author: {
@@ -206,9 +208,10 @@ export async function PUT(
 // DELETE - Yorum sil
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient(cookieStore);
 
@@ -225,7 +228,7 @@ export async function DELETE(
     }
 
     const existingComment = await prisma.comment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingComment) {
@@ -237,7 +240,7 @@ export async function DELETE(
     }
 
     await prisma.comment.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: "Comment deleted successfully" });

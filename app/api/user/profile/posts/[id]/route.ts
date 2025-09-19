@@ -64,11 +64,12 @@ export async function GET(
 // PUT - Post güncelle
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const existingPost = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingPost) {
@@ -103,7 +104,7 @@ export async function PUT(
     }
 
     const post = await prisma.post.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       include: {
         author: {
@@ -127,11 +128,12 @@ export async function PUT(
 // DELETE - Post sil
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const existingPost = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingPost) {
@@ -139,7 +141,7 @@ export async function DELETE(
     }
 
     await prisma.post.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: "Post deleted successfully" });
