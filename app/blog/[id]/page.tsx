@@ -40,7 +40,7 @@ export async function generateMetadata({
 }
 
 async function getBlogById(id: string) {
-  const res = await fetch(`https://myblogapp.vercel.app/api/post/get/${id}`, {
+  const res = await fetch(`https://bloguygulamam.vercel.app/api/post/get/${id}`, {
     cache: "no-store",
   });
 
