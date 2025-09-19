@@ -38,17 +38,6 @@ export async function middleware(req: NextRequest) {
   // Auth routes - giriş yapmamış kullanıcılar için
   const authRoutes = ["/giris", "/kayit", "/sifremi-unuttum", "/sifre-sifirla"];
 
-  // API routes that need authentication
-  const protectedApiRoutes = [
-    "/api/auth",
-    "/api/category",
-    "/api/comment",
-    "/api/post",
-    "/api/search",
-    "/api/upload",
-    "/api/user",
-  ];
-
   // API routes that need admin access
   const adminApiRoutes = ["/api/admin"];
 
@@ -59,10 +48,6 @@ export async function middleware(req: NextRequest) {
   );
 
   const isAuthRoute = authRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
-  );
-
-  const isProtectedApiRoute = protectedApiRoutes.some((route) =>
     req.nextUrl.pathname.startsWith(route)
   );
 
@@ -77,7 +62,7 @@ export async function middleware(req: NextRequest) {
     ["POST", "PUT", "DELETE"].includes(req.method);
 
   // API routes authentication
-  if (isProtectedApiRoute || isAdminApiRoute || needsAuthForWrite) {
+  if (isAdminApiRoute || needsAuthForWrite) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
