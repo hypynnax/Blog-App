@@ -7,9 +7,10 @@ import { cookies } from "next/headers";
 // GET - Id ile postun tüm yorumlarını getir
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -18,7 +19,7 @@ export async function GET(
 
     // Önce post bul
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: { id: true },
     });
 
@@ -29,7 +30,7 @@ export async function GET(
     const [comments, total] = await Promise.all([
       prisma.comment.findMany({
         where: {
-          postId: params.id,
+          postId: id,
         },
         include: {
           author: {
@@ -42,7 +43,7 @@ export async function GET(
       }),
       prisma.comment.count({
         where: {
-          postId: params.id,
+          postId: id,
         },
       }),
     ]);

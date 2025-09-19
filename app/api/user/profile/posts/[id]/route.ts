@@ -4,9 +4,10 @@ import { prisma } from "@/lib/prisma";
 // GET - Id ile kullanıcının tüm postlarını getir
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -15,7 +16,7 @@ export async function GET(
 
     // Önce kullanıcıyı bul
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: { id: true },
     });
 

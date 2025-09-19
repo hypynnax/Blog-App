@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 // GET - Username ile kullanıcı bilgilerini getir
 export async function GET(
   request: NextRequest,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   try {
+    const { username } = await params;
     const user = await prisma.user.findUnique({
-      where: { username: params.username },
+      where: { username: username },
       select: {
         id: true,
         username: true,

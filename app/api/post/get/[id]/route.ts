@@ -7,9 +7,10 @@ import { cookies } from "next/headers";
 // GET - Id ile post getir
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient(cookieStore);
 
@@ -19,7 +20,7 @@ export async function GET(
     } = await supabase.auth.getUser();
 
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         author: { select: { username: true } },
         _count: { select: { comments: true } },
@@ -32,7 +33,7 @@ export async function GET(
 
     if (post.authorId && supabaseUser && post.authorId !== supabaseUser.id) {
       await prisma.post.update({
-        where: { id: params.id },
+        where: { id: id },
         data: {
           viewCount: {
             increment: 1,
@@ -51,9 +52,10 @@ export async function GET(
 // PUT - Id ile post getir
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient(cookieStore);
 
@@ -70,7 +72,7 @@ export async function PUT(
     }
 
     const existingPost = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingPost) {
@@ -104,7 +106,7 @@ export async function PUT(
     const readTime = Math.ceil(content.split(" ").length / 200);
 
     const post = await prisma.post.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         title,
         slug: uniqueSlug,

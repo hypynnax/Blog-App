@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const { searchParams } = new URL(request.url);
 
     // Pagination parametreleri
@@ -18,7 +19,7 @@ export async function GET(
       prisma.post.findMany({
         where: {
           status: "PUBLISHED",
-          category: { equals: params.slug, mode: "insensitive" },
+          category: { equals: slug, mode: "insensitive" },
         },
         select: {
           id: true,
@@ -50,7 +51,7 @@ export async function GET(
         where: {
           status: "PUBLISHED",
           category: {
-            equals: params.slug,
+            equals: slug,
             mode: "insensitive",
           },
         },
