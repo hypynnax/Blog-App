@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +15,7 @@ export async function GET(request: NextRequest) {
       where.category = category;
     }
 
-    if (!query || query.trim() !== "") {
+    if (query && query.trim() !== "") {
       where.OR = [
         { title: { contains: query, mode: "insensitive" } },
         { category: { contains: query, mode: "insensitive" } },
