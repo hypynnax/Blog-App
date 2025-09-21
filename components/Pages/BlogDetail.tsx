@@ -156,7 +156,7 @@ export default function BlogDetail({ id }: BlogDetailProps) {
 
             <div className="flex items-center gap-3 mb-8 pb-8 border-b">
               <Link
-                href={`http://localhost:3000/profil/${post?.author.username}`}
+                href={`https://bloguygulamam.vercel.app/profil/${post?.author.username}`}
                 className="relative w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden"
               >
                 {post?.author?.avatar ? (
@@ -175,7 +175,7 @@ export default function BlogDetail({ id }: BlogDetailProps) {
               </Link>
               <div>
                 <Link
-                  href={`http://localhost:3000/profil/${post?.author.username}`}
+                  href={`https://bloguygulamam.vercel.app/profil/${post?.author.username}`}
                   className="font-medium"
                 >
                   {post?.author?.username}

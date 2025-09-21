@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate" 
+  },
+   "prisma": {
+    "schema": "prisma/schema.prisma"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.3.4",

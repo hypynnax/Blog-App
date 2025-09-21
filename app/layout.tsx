@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "tr_TR",
-    url: "http://localhost:3000",
+    url: "https://bloguygulamam.vercel.app",
     siteName: "Blog",
     title: "Blog | Teknoloji ve Web Geliştirme",
     description:
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     creator: "@yourblog",
   },
   alternates: {
-    canonical: "http://localhost:3000",
+    canonical: "https://bloguygulamam.vercel.app",
   },
 };
 

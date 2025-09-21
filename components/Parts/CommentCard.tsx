@@ -12,7 +12,7 @@ export default function CommentCard({
   return (
     <div className="w-full relative bg-gray-50 rounded-md p-4 mb-4">
       <Link
-        href={`http://localhost:3000/blog/${postId}`}
+        href={`https://bloguygulamam.vercel.app/blog/${postId}`}
         className="absolute inset-0"
       ></Link>
 
@@ -21,7 +21,7 @@ export default function CommentCard({
           <Link
             href={
               author.username
-                ? `http://localhost:3000/profil/${author.username}`
+                ? `https://bloguygulamam.vercel.app/profil/${author.username}`
                 : ""
             }
             className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold relative overflow-hidden"
@@ -45,7 +45,7 @@ export default function CommentCard({
             <Link
               href={
                 author.username
-                  ? `http://localhost:3000/profil/${author.username}`
+                  ? `https://bloguygulamam.vercel.app/profil/${author.username}`
                   : ""
               }
               className="font-medium"
