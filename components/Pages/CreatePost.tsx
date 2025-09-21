@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import MarkdownEditor from "@/components/Parts/MarkdownEditor";
+import BlockEditor from "@/components/Parts/BlockEditor";
 import TagInput from "@/components/Parts/TagInput";
 import toast from "react-hot-toast";
 import { Category } from "@/types/category";
@@ -186,7 +186,7 @@ export default function CreatePost() {
           {/* Content Editor */}
           <div className="bg-white rounded-md shadow-md p-6">
             <label className="block text-sm font-medium mb-4">İçerik *</label>
-            <MarkdownEditor
+            <BlockEditor
               value={formData.content}
               onChange={(value) =>
                 setFormData((prev) => ({ ...prev, content: value }))

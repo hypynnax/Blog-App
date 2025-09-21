@@ -18,6 +18,7 @@ model User {
   website  String?
   location String?
   avatar   String?
+  bgImage  String?  @map("bg_image")
   role     Role   @default(USER)
   
   emailVerified Boolean   @default(false) @map("email_verified")

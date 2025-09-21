@@ -17,6 +17,6 @@ export default function robots(): MetadataRoute.Robots {
         "/sifre-sifirla/",
       ],
     },
-    sitemap: "https://bloguygulamam.vercel.app/sitemap.xml",
+    sitemap: "http://localhost:3000/sitemap.xml",
   };
 }

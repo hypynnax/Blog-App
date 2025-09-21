@@ -2,15 +2,14 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BlogDetailPage from "@/components/Pages/BlogDetail";
 
-interface BlogDetailProps {
-  params: { id: string };
-}
-
 // Dynamic metadata generation
 export async function generateMetadata({
   params,
-}: BlogDetailProps): Promise<Metadata> {
-  const blog = await getBlogById(params.id);
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const blog = await getBlogById(id);
 
   if (!blog) {
     return {
@@ -40,7 +39,7 @@ export async function generateMetadata({
 }
 
 async function getBlogById(id: string) {
-  const res = await fetch(`https://bloguygulamam.vercel.app/api/post/get/${id}`, {
+  const res = await fetch(`http://localhost:3000/api/post/get/no-views/${id}`, {
     cache: "no-store",
   });
 
@@ -49,15 +48,20 @@ async function getBlogById(id: string) {
   }
 
   const data = await res.json();
-  return data.post; // ✅ artık tek obje dönüyor
+  return data.post;
 }
 
-export default async function BlogDetail({ params }: BlogDetailProps) {
-  const blog = await getBlogById(params.id);
+export default async function BlogDetail({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const blog = await getBlogById(id);
 
   if (!blog) {
     notFound();
   }
 
-  return <BlogDetailPage id={params.id} />;
+  return <BlogDetailPage id={id} />;
 }

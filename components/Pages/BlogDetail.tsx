@@ -2,8 +2,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import CommentCard from "@/components/Parts/CommentCard";
 import CommentForm from "@/components/Parts/CommentForm";
 import { Post } from "@/types/post";
@@ -25,7 +23,7 @@ export default function BlogDetail({ id }: BlogDetailProps) {
   useEffect(() => {
     fetchPost();
     fetchComment();
-  }, []);
+  }, [id]);
 
   async function fetchPost() {
     try {
@@ -157,20 +155,56 @@ export default function BlogDetail({ id }: BlogDetailProps) {
             </h1>
 
             <div className="flex items-center gap-3 mb-8 pb-8 border-b">
-              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                {post?.author?.username.charAt(0)}
-              </div>
+              <Link
+                href={`http://localhost:3000/profil/${post?.author.username}`}
+                className="relative w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden"
+              >
+                {post?.author?.avatar ? (
+                  <Image
+                    src={post?.author?.avatar}
+                    alt="Profil Resmi"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <>
+                    {post?.author?.name?.charAt(0).toUpperCase()}
+                    {post?.author?.surname?.charAt(0).toUpperCase()}
+                  </>
+                )}
+              </Link>
               <div>
-                <p className="font-medium">{post?.author?.username}</p>
+                <Link
+                  href={`http://localhost:3000/profil/${post?.author.username}`}
+                  className="font-medium"
+                >
+                  {post?.author?.username}
+                </Link>
                 <p className="text-sm text-gray-500">Yazar</p>
               </div>
             </div>
 
             <div className="prose max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {post?.content || "*Henüz içerik yok...*"}
-              </ReactMarkdown>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: post?.content ?? "Henüz İçerik Yok...",
+                }}
+              />
             </div>
+
+            {post?.tags?.length != 0 && (
+              <div className="flex items-center gap-2 mt-4">
+                <b>Etiketler : </b>
+                {post?.tags?.map((tag, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-400 rounded-full px-3 py-1 bg-gray-200"
+                  >
+                    {tag}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </article>
 

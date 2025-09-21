@@ -22,7 +22,9 @@ export async function GET(
     const post = await prisma.post.findUnique({
       where: { id: id },
       include: {
-        author: { select: { username: true } },
+        author: {
+          select: { username: true, avatar: true, name: true, surname: true },
+        },
         _count: { select: { comments: true } },
       },
     });
@@ -49,7 +51,7 @@ export async function GET(
   }
 }
 
-// PUT - Id ile post getir
+// PUT - Id ile yeni post oluştur
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -136,7 +138,7 @@ export async function PUT(
 
     return NextResponse.json({ post });
   } catch (error) {
-    console.error("Post fetch error:", error);
+    console.error("Post create error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

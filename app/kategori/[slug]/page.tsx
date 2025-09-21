@@ -2,13 +2,9 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import CategoryPage from "@/components/Pages/Category";
 
-interface CategoryProps {
-  params: { slug: string };
-}
-
 // Kategorileri çeken function
 async function getCategories() {
-  const res = await fetch(`https://bloguygulamam.vercel.app/api/category`, {
+  const res = await fetch(`http://localhost:3000/api/category`, {
     cache: "no-store", // her istekte güncel veriyi çekmek için
   });
 
@@ -22,9 +18,12 @@ async function getCategories() {
 
 export async function generateMetadata({
   params,
-}: CategoryProps): Promise<Metadata> {
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
   const categories = await getCategories();
-  const category = categories.find((c: any) => c.slug === params.slug);
+  const category = categories.find((c: any) => c.slug === slug);
 
   if (!category) {
     return { title: "Kategori Bulunamadı" };
@@ -42,9 +41,14 @@ export async function generateMetadata({
   };
 }
 
-export default async function Category({ params }: CategoryProps) {
+export default async function Category({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
   const categories = await getCategories();
-  const category = categories.find((c: any) => c.slug === params.slug);
+  const category = categories.find((c: any) => c.slug === slug);
 
   if (!category) {
     notFound();

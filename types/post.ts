@@ -6,7 +6,7 @@ export interface Post {
   content: string;
   coverImage: string | null;
   category: string;
-  tags?: string | null;
+  tags?: string[] | null;
   status: string;
   readTime?: number | null;
   viewCount: number;
@@ -16,6 +16,9 @@ export interface Post {
   authorId: string;
   author: {
     username: string;
+    avatar: string;
+    name: string;
+    surname: string;
   };
   _count: {
     comments: number;

@@ -11,36 +11,55 @@ export default function CommentCard({
 }: CommentCardProps) {
   return (
     <div className="w-full relative bg-gray-50 rounded-md p-4 mb-4">
-      <Link href={`blog/${postId}`} className="absolute inset-0"></Link>
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-          {author.avatar ? (
-            <Image
-              src={author.avatar}
-              alt="Profil Resmi"
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <>
-              {author.name.charAt(0).toUpperCase()}
-              {author.surname.charAt(0).toUpperCase()}
-            </>
-          )}
-        </div>
-        <div>
+      <Link
+        href={`http://localhost:3000/blog/${postId}`}
+        className="absolute inset-0"
+      ></Link>
+
+      <div className="relative inline-block">
+        <div className="flex items-center gap-3 mb-2">
           <Link
-            href={author.username ? `profil/${author.username}` : ""}
-            className="font-medium"
+            href={
+              author.username
+                ? `http://localhost:3000/profil/${author.username}`
+                : ""
+            }
+            className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold relative overflow-hidden"
           >
-            {author.name} {author.surname}
+            {author.avatar ? (
+              <Image
+                src={author.avatar}
+                alt="Profil Resmi"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <>
+                {author.name.charAt(0).toUpperCase()}
+                {author.surname.charAt(0).toUpperCase()}
+              </>
+            )}
           </Link>
-          <p className="text-sm text-gray-500">
-            {new Date(createdAt).toLocaleDateString("tr-TR")}
-          </p>
+
+          <div>
+            <Link
+              href={
+                author.username
+                  ? `http://localhost:3000/profil/${author.username}`
+                  : ""
+              }
+              className="font-medium"
+            >
+              {author.name} {author.surname}
+            </Link>
+            <p className="text-sm text-gray-500">
+              {new Date(createdAt).toLocaleDateString("tr-TR")}
+            </p>
+          </div>
         </div>
+
+        <p className="text-gray-700">{content}</p>
       </div>
-      <p className="text-gray-700">{content}</p>
     </div>
   );
 }

@@ -21,6 +21,7 @@ export async function GET(
         website: true,
         location: true,
         avatar: true,
+        bgImage: true,
         createdAt: true,
         _count: {
           select: {

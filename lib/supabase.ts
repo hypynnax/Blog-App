@@ -3,7 +3,7 @@ import { createBrowserClient, createServerClient } from "@supabase/ssr";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-//const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Browser client (client components için)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -39,10 +39,22 @@ export const createRouteHandlerClient = (cookieStore: any) =>
     },
   });
 
-//// Admin client (service role key ile)
-//export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-//  auth: {
-//    autoRefreshToken: false,
-//    persistSession: false,
-//  },
-//});
+// Admin client (service role key ile) - sadece service key varsa oluştur
+export const supabaseAdmin = supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  : null;
+
+// Storage client kontrol fonksiyonu
+export const getStorageClient = () => {
+  if (!supabaseAdmin) {
+    throw new Error(
+      "Service role key not configured. Please add SUPABASE_SERVICE_ROLE_KEY to your environment variables."
+    );
+  }
+  return supabaseAdmin;
+};

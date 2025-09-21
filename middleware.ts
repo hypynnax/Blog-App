@@ -38,6 +38,9 @@ export async function middleware(req: NextRequest) {
   // Auth routes - giriş yapmamış kullanıcılar için
   const authRoutes = ["/giris", "/kayit", "/sifremi-unuttum", "/sifre-sifirla"];
 
+  // API routes that need authentication
+  const protectedApiRoutes = ["/api/upload"];
+
   // API routes that need admin access
   const adminApiRoutes = ["/api/admin"];
 
@@ -51,18 +54,23 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname.startsWith(route)
   );
 
+  const isProtectedApiRoute = protectedApiRoutes.some((route) =>
+    req.nextUrl.pathname.startsWith(route)
+  );
+
   const isAdminApiRoute = adminApiRoutes.some((route) =>
     req.nextUrl.pathname.startsWith(route)
   );
 
   // POST/PUT/DELETE operations on posts and comments need auth
   const needsAuthForWrite =
-    (req.nextUrl.pathname.startsWith("/api/posts") ||
-      req.nextUrl.pathname.startsWith("/api/comments")) &&
+    (req.nextUrl.pathname.startsWith("/api/user") ||
+      req.nextUrl.pathname.startsWith("/api/post") ||
+      req.nextUrl.pathname.startsWith("/api/comment")) &&
     ["POST", "PUT", "DELETE"].includes(req.method);
 
   // API routes authentication
-  if (isAdminApiRoute || needsAuthForWrite) {
+  if (isProtectedApiRoute || isAdminApiRoute || needsAuthForWrite) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -88,8 +96,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
-    "/((?!api|_next/static|_next/image|favicon.ico|icons).*)",
-    "/api/:path*", // API routes için de çalıştır
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/api/(.*)",
   ],
 };

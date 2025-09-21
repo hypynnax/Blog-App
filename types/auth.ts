@@ -9,6 +9,7 @@ export interface BaseUser {
   website: string | null;
   location: string | null;
   avatar: string | null;
+  bgImage: string | null;
   role: UserRole;
   emailVerified: boolean;
   createdAt: Date;

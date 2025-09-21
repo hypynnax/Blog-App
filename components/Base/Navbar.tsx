@@ -60,7 +60,7 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center space-x-6">
+        <div className="hidden lg:flex items-center space-x-6">
           <Link href="/arama" className="hover:text-blue-600 transition">
             {searchBarIcon}
           </Link>
@@ -81,7 +81,7 @@ export default function Navbar() {
         </div>
 
         {/* Auth Links */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden lg:flex items-center space-x-4">
           {user ? (
             <>
               <span className="text-blue-100 text-sm">
@@ -122,7 +122,7 @@ export default function Navbar() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden focus:outline-none"
+          className="lg:hidden focus:outline-none"
           aria-label="Toggle mobile menu"
         >
           <div className="w-6 h-6 flex flex-col justify-center items-center">
@@ -148,7 +148,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {isOpen && (
         <div
-          className={`md:hidden transition-all duration-300 overflow-hidden overflow-y-auto scrollbar-hide ${
+          className={`lg:hidden transition-all duration-300 overflow-hidden overflow-y-auto scrollbar-hide ${
             isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >

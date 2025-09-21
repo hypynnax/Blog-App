@@ -3,19 +3,19 @@ import { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [
     {
-      url: "https://bloguygulamam.vercel.app",
+      url: "http://localhost:3000",
       lastModified: new Date(),
       changeFrequency: "daily" as const,
       priority: 1,
     },
     {
-      url: "https://bloguygulamam.vercel.app/hakkimizda",
+      url: "http://localhost:3000/hakkimizda",
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     },
     {
-      url: "https://bloguygulamam.vercel.app/iletisim",
+      url: "http://localhost:3000/iletisim",
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.5,
@@ -34,7 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: "2024-11-28",
     },
   ].map((post) => ({
-    url: `https://bloguygulamam.vercel.app/blog/${post.id}`,
+    url: `http://localhost:3000/blog/${post.id}`,
     lastModified: new Date(post.lastModified),
     changeFrequency: "weekly" as const,
     priority: 0.9,
@@ -47,7 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "javascript",
     "css",
   ].map((category) => ({
-    url: `https://bloguygulamam.vercel.app/kategori/${category}`,
+    url: `http://localhost:3000/kategori/${category}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.7,

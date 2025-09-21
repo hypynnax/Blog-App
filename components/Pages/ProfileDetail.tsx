@@ -95,10 +95,28 @@ export default function ProfileDetail({ username }: { username: string }) {
       <main className="max-w-6xl mx-auto px-2 md:px-6 py-8">
         <div className="bg-white rounded-md shadow-md overflow-hidden">
           {/* Profile Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-12">
-            <div className="flex flex-wrap justify-center md:justify-start items-center gap-6">
-              <div className="relative w-36 h-36 bg-white rounded-full flex items-center justify-center text-blue-600 text-3xl font-bold overflow-hidden">
-                {user.avatar ? (
+          <div>
+            {/* Background Image */}
+            <div
+              className="h-48 md:h-64 bg-gradient-to-r from-blue-600 to-blue-700 relative"
+              style={{
+                backgroundImage: user?.bgImage
+                  ? `url(${user.bgImage})`
+                  : undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }}
+            >
+              {!user?.bgImage && (
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700" />
+              )}
+            </div>
+
+            {/* Profile Content */}
+            <div className="flex justify-center md:justify-start items-center px-8 -mt-20">
+              <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center text-blue-600 text-3xl font-bold relative border-4 border-white shadow-lg overflow-hidden">
+                {user?.avatar ? (
                   <Image
                     src={user.avatar}
                     alt="Profil Resmi"
@@ -110,16 +128,6 @@ export default function ProfileDetail({ username }: { username: string }) {
                     {user.name.charAt(0).toUpperCase()}
                     {user.surname.charAt(0).toUpperCase()}
                   </>
-                )}
-              </div>
-              <div className="text-white text-center md:text-left">
-                <h1 className="text-3xl font-bold">
-                  {user.name} {user.surname}
-                </h1>
-                <h2 className="text-xl mb-2">@{user.username}</h2>
-                <p className="text-blue-100">{user.email}</p>
-                {user.location && (
-                  <p className="text-blue-100">{user.location}</p>
                 )}
               </div>
             </div>

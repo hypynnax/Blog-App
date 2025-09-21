@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import MarkdownEditor from "@/components/Parts/MarkdownEditor";
+import BlockEditor from "@/components/Parts/BlockEditor";
 import TagInput from "@/components/Parts/TagInput";
 import toast from "react-hot-toast";
 import { Category } from "@/types/category";
@@ -118,7 +118,7 @@ export default function EditPost({ postId }: { postId: string }) {
     if (!confirm("Bu yazıyı silmek istediğinizden emin misiniz?")) return;
 
     try {
-      const response = await fetch(`/api/posts/${postId}`, {
+      const response = await fetch(`/api/user/profile/posts/${postId}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -151,7 +151,7 @@ export default function EditPost({ postId }: { postId: string }) {
           <button
             onClick={handleDelete}
             disabled={isLoading}
-            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition disabled:opacity-50"
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition disabled:opacity-50 cursor-pointer"
           >
             Yazıyı Sil
           </button>
@@ -237,8 +237,9 @@ export default function EditPost({ postId }: { postId: string }) {
           {/* Content Editor */}
           <div className="bg-white rounded-md shadow-md p-6">
             <label className="block text-sm font-medium mb-4">İçerik *</label>
-            <MarkdownEditor
+            <BlockEditor
               value={formData.content}
+              initialValue={formData.content}
               onChange={(value) =>
                 setFormData((prev) => ({ ...prev, content: value }))
               }
