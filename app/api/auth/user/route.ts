@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@/lib/supabase";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
+import { createAuthClientFromRequest } from "@/lib/auth-utils";
 import { AuthResponse } from "@/types/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     const {
       data: { user: supabaseUser },

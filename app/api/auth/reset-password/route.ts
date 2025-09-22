@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@/lib/supabase";
-import { cookies } from "next/headers";
+import { createAuthClientFromRequest } from "@/lib/auth-utils";
 import { ResetPasswordData, AuthResponse } from "@/types/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     const { email }: ResetPasswordData = await request.json();
 

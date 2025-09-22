@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@/lib/supabase";
-import { cookies } from "next/headers";
 import { SignInData, AuthResponse } from "@/types/auth";
-import { findUserByEmailOrUsername } from "@/lib/auth-utils";
+import {
+  createAuthClientFromRequest,
+  findUserByEmailOrUsername,
+} from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     const { emailOrUsername, password }: SignInData = await request.json();
 

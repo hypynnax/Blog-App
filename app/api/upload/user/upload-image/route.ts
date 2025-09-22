@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createRouteHandlerClient, getStorageClient } from "@/lib/supabase";
-import { cookies } from "next/headers";
+import { getStorageClient } from "@/lib/supabase";
+import { createAuthClientFromRequest } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
   console.log("Upload API called");
@@ -22,8 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     // Auth kontrolü için normal client kullan
     const {

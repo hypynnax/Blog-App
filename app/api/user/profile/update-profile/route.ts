@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@/lib/supabase";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { AuthResponse } from "@/types/auth";
-import { isUsernameAvailable } from "@/lib/auth-utils";
+import {
+  createAuthClientFromRequest,
+  isUsernameAvailable,
+} from "@/lib/auth-utils";
 
 export async function PUT(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     // Kullanıcının oturum açmış olduğunu kontrol et
     const {

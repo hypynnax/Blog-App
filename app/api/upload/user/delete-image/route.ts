@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createRouteHandlerClient, getStorageClient } from "@/lib/supabase";
-import { cookies } from "next/headers";
+import { getStorageClient } from "@/lib/supabase";
+import { createAuthClientFromRequest } from "@/lib/auth-utils";
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -20,8 +20,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     // Auth kontrolü
     const {

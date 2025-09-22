@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createRouteHandlerClient } from "@/lib/supabase";
+import { createAuthClientFromRequest } from "@/lib/auth-utils";
 import { AuthResponse } from "@/types/auth";
-import { cookies } from "next/headers";
 
 // GET - Id ile post getir
 export async function GET(
@@ -11,8 +10,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     const {
       data: { user: supabaseUser },
@@ -58,8 +56,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient(cookieStore);
+    const supabase = createAuthClientFromRequest(request);
 
     const {
       data: { user: supabaseUser },
