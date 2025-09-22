@@ -1,13 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 import { prisma } from "@/lib/prisma";
-import { createAuthClientFromRequest } from "@/lib/auth-utils";
 import { SignUpData, AuthResponse } from "@/types/auth";
 import { isUsernameAvailable, isEmailAvailable } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = createAuthClientFromRequest(request);
+  let response = NextResponse.json({ success: false });
 
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  try {
     const { email, password, username, name, surname, phone }: SignUpData =
       await request.json();
 
@@ -133,21 +150,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message:
-        "Kayıt başarılı! Email adresinizi onaylamak için gelen kutuyu kontrol edin.",
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          name: user.name,
-          surname: user.surname,
-          phone: user.phone,
+    // Success response'u cookies ile birlikte return et
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          "Kayıt başarılı! Email adresinizi onaylamak için gelen kutuyu kontrol edin.",
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            name: user.name,
+            surname: user.surname,
+            phone: user.phone,
+          },
         },
-      },
-    } as AuthResponse);
+      } as AuthResponse,
+      {
+        status: 200,
+        headers: response.headers, // Cookies'leri dahil et
+      }
+    );
   } catch (error) {
     console.error("Signup error:", error);
     return NextResponse.json(

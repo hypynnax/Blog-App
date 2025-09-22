@@ -9,6 +9,8 @@ import { BlogCardProps } from "@/types/post";
 import { Category } from "@/types/category";
 import { searchBarIcon } from "@/icons/icon";
 import { useRouter } from "next/navigation";
+import FlipText from "../Parts/FlipText";
+import TypewriterText from "../Parts/TypewriterText ";
 
 export default function HomePage() {
   const [blogs, setBlogs] = useState<BlogCardProps[]>([]);
@@ -54,7 +56,10 @@ export default function HomePage() {
 
       if (response.ok) {
         const data = await response.json();
-        setCategories(data.categories);
+        const categories = data.categories;
+        const limitedCategories =
+          categories.length <= 8 ? categories : categories.slice(0, 8);
+        setCategories(limitedCategories);
       }
     } catch (error) {
       console.error("Fetch categories error:", error);
@@ -109,12 +114,19 @@ export default function HomePage() {
       <section className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">
-              Teknoloji Blogu
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Web geliştirme, programlama ve teknoloji hakkında güncel yazılar
-            </p>
+            <div className="flex justify-center items-center gap-2 mb-4">
+              {categories.length != 0 && (
+                <TypewriterText texts={categories.map((cat) => cat.name)} />
+              )}
+              <h1 className="text-4xl font-bold text-gray-800">Blogu</h1>
+            </div>
+            <div className="max-w-2xl mx-auto flex justify-center items-center gap-2">
+              <p className="text-xl text-gray-600">
+                Merak ettiğiniz tüm konular hakkında güncel yazıları
+              </p>
+              <FlipText texts={["bulun", "okuyun", "yazın"]} />
+              <p className="text-xl text-gray-600">.</p>
+            </div>
           </div>
         </div>
       </section>

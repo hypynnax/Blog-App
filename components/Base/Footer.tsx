@@ -9,15 +9,18 @@ import {
   webIcon,
   xSocialIcon,
 } from "@/icons/icon";
+import { Category } from "@/types/category";
 
 export default function Footer() {
   const [page, setPage] = useState({
     visible: false,
     year: "",
   });
+  const [categories, setCategories] = useState<Category[]>([]);
 
   /* Güncel Yıl Hesaplama */
   useEffect(() => {
+    fetchCategories();
     setPage((prev) => ({ ...prev, year: new Date().getFullYear().toString() }));
 
     const toggleVisibility = () => {
@@ -27,6 +30,23 @@ export default function Footer() {
     window.addEventListener("scroll", toggleVisibility);
     return () => window.removeEventListener("scroll", toggleVisibility);
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`/api/category`);
+      if (response.ok) {
+        const data = await response.json();
+
+        const categories = data.categories;
+        const limitedCategories =
+          categories.length <= 4 ? categories : categories.slice(0, 4);
+
+        setCategories(limitedCategories);
+      }
+    } catch (error) {
+      console.error("Categories error:", error);
+    }
+  };
 
   return (
     <footer className="text-white border-t">
@@ -113,30 +133,23 @@ export default function Footer() {
           <div>
             <h4 className="font-bold mb-4">Kategoriler</h4>
             <div className="space-y-2 text-gray-300">
-              <Link
-                href="/kategori/web-gelistirme"
-                className="flex justify-center items-center border rounded-md group p-2 cursor-pointer hover:bg-white hover:text-black hover:border-black transition"
-              >
-                Web Geliştirme
-              </Link>
-              <Link
-                href="/kategori/react"
-                className="flex justify-center items-center border rounded-md group p-2 cursor-pointer hover:bg-white hover:text-black hover:border-black transition"
-              >
-                React
-              </Link>
-              <Link
-                href="/kategori/typescript"
-                className="flex justify-center items-center border rounded-md group p-2 cursor-pointer hover:bg-white hover:text-black hover:border-black transition"
-              >
-                TypeScript
-              </Link>
-              <Link
-                href="/kategori/javascript"
-                className="flex justify-center items-center border rounded-md group p-2 cursor-pointer hover:bg-white hover:text-black hover:border-black transition"
-              >
-                JavaScript
-              </Link>
+              {categories.length != 0 ? (
+                <>
+                  {categories.map((category) => (
+                    <Link
+                      key={category.id}
+                      href={`/kategori/${category.slug}`}
+                      className="flex justify-center items-center border rounded-md group p-2 cursor-pointer hover:bg-white hover:text-black hover:border-black transition"
+                    >
+                      {category.name}
+                    </Link>
+                  ))}
+                </>
+              ) : (
+                <p className="flex justify-center items-center border rounded-md group p-2 cursor-pointer hover:bg-white hover:text-black hover:border-black transition">
+                  Henüz kategori yok
+                </p>
+              )}
             </div>
           </div>
 

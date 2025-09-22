@@ -1,11 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAuthClientFromRequest } from "@/lib/auth-utils";
+import { createServerClient } from "@supabase/ssr";
 import { AuthResponse } from "@/types/auth";
 
 export async function POST(request: NextRequest) {
-  try {
-    const supabase = createAuthClientFromRequest(request);
+  let response = NextResponse.json({ success: true });
 
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  try {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -19,10 +36,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Başarıyla çıkış yapıldı",
-    } as AuthResponse);
+    // Success response'u cookies ile birlikte return et
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Başarıyla çıkış yapıldı",
+      } as AuthResponse,
+      {
+        status: 200,
+        headers: response.headers, // Cookies'leri dahil et
+      }
+    );
   } catch (error) {
     console.error("Signout error:", error);
     return NextResponse.json(
