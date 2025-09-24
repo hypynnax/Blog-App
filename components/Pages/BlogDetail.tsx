@@ -125,12 +125,12 @@ export default function BlogDetail({ id }: BlogDetailProps) {
         {/* Blog Content */}
         <article className="bg-white rounded-md shadow-md overflow-hidden">
           {post?.coverImage && (
-            <div className="h-64 w-full relative">
+            <div className="h-75 w-full relative">
               <Image
                 src={post?.coverImage}
                 alt={post?.title}
                 fill
-                className="object-cover"
+                className="object-cover bg-center"
               />
             </div>
           )}
@@ -193,8 +193,8 @@ export default function BlogDetail({ id }: BlogDetailProps) {
             </div>
 
             {post?.tags?.length != 0 && (
-              <div className="flex items-center gap-2 mt-4">
-                <b>Etiketler : </b>
+              <div className="flex flex-wrap items-center gap-2 mt-4">
+                <b className="whitespace-nowrap">Etiketler : </b>
                 {post?.tags?.map((tag, index) => (
                   <div
                     key={index}

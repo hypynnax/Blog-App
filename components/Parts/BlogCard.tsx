@@ -16,6 +16,13 @@ export default function BlogCard({
   viewCount = 0,
   _count,
 }: BlogCardProps) {
+  const truncateText = (text: string, limit: number) => {
+    if (text.length <= limit) return text;
+    const trimmed = text.slice(0, limit);
+    const lastSpace = trimmed.lastIndexOf(" ");
+    return trimmed.slice(0, lastSpace) + " ...";
+  };
+
   return (
     <div className="relative bg-white rounded-md shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       {/* Cover Image */}
@@ -25,7 +32,7 @@ export default function BlogCard({
             src={coverImage}
             alt={title}
             fill
-            className="object-cover"
+            className="object-cover bg-center"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
@@ -67,7 +74,7 @@ export default function BlogCard({
 
           <div className="flex justify-center items-center">
             {viewCount > 0 && (
-              <span className="text-xs">{viewCount} görüntülenme</span>
+              <span className="text-xs">{viewCount / 2} görüntülenme</span>
             )}
 
             {_count.comments > 0 && (
@@ -81,13 +88,11 @@ export default function BlogCard({
 
         {/* Title */}
         <h3 className="text-xl font-bold mb-3 hover:text-blue-600 transition-colors line-clamp-2">
-          <Link href={`/blog/${id}`}>{title}</Link>
+          <Link href={`/blog/${id}`}>{truncateText(title, 50)}</Link>
         </h3>
 
         {/* Excerpt */}
-        <p className="h-5 text-gray-600 mb-4 line-clamp-3 leading-relaxed">
-          {excerpt}
-        </p>
+        <p className="h-5 text-gray-600 mb-4">{truncateText(excerpt, 45)}</p>
 
         {/* Footer */}
         <div className="flex justify-between items-center py-4 border-t border-gray-100">
@@ -106,7 +111,7 @@ export default function BlogCard({
         </div>
 
         {/* Tags */}
-        <div className="h-10 flex justify-end items-center gap-2 pt-4 border-t border-gray-100 mt-2">
+        <div className="h-10 flex justify-start items-center gap-2 px-1 border-t border-gray-100 mt-2 overflow-hidden overflow-x-auto scrollbar-hide">
           {tags.map((tag, index) => {
             const colors = [
               "bg-red-200 text-red-800",

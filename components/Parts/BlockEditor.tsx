@@ -19,6 +19,7 @@ import {
   Italic,
   Underline,
   Link2,
+  Video,
   Table,
   Space,
   Minus,
@@ -41,7 +42,8 @@ interface Block {
     | "spacer"
     | "table"
     | "columns"
-    | "code";
+    | "code"
+    | "video";
   content: string;
   properties: {
     level?: number;
@@ -61,10 +63,12 @@ interface Block {
       | "upper-roman";
     url?: string;
     alt?: string;
+    videoTitle?: string;
     bold?: boolean;
     italic?: boolean;
     underline?: boolean;
     link?: string;
+    videoUrl?: string;
     spacing?: number;
     indent?: boolean;
     indentAll?: boolean;
@@ -74,7 +78,7 @@ interface Block {
     tableData?: string[][];
     columnCount?: number;
     columnGap?: number;
-    columnTypes?: ("text" | "image" | "code")[];
+    columnTypes?: ("text" | "image" | "code" | "video")[];
     columnContents?: string[];
     language?: string;
   };
@@ -87,6 +91,35 @@ interface BlockEditorProps {
   initialValue?: string;
 }
 
+// YouTube URL'sini embed formatına çevir
+const getYouTubeEmbedUrl = (url: string): string => {
+  if (!url) return "";
+
+  // YouTube watch URL'sini embed formatına çevir
+  const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+  const match = url.match(youtubeRegex);
+
+  if (match) {
+    return `https://www.youtube.com/embed/${match[1]}`;
+  }
+
+  // Vimeo URL'si için
+  const vimeoRegex = /vimeo\.com\/(\d+)/;
+  const vimeoMatch = url.match(vimeoRegex);
+
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+
+  // Eğer zaten embed URL'si ise
+  if (url.includes("embed")) {
+    return url;
+  }
+
+  return url;
+};
+
+// Html parse et
 const parseHtmlToBlocks = (html: string): Block[] => {
   if (!html || html.trim() === "")
     return [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
@@ -255,6 +288,234 @@ const parseHtmlToBlocks = (html: string): Block[] => {
     : [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
 };
 
+//const parseHtmlToBlocks = (html: string): Block[] => {
+//  if (!html || html.trim() === "")
+//    return [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
+//
+//  const tempDiv = document.createElement("div");
+//  tempDiv.innerHTML = html;
+//
+//  const blocks: Block[] = [];
+//  let blockCounter = 1;
+//
+//  Array.from(tempDiv.children).forEach((element) => {
+//    const tagName = element.tagName.toLowerCase();
+//    const content = element.textContent || "";
+//    const htmlElement = element as HTMLElement;
+//
+//    if (tagName.startsWith("h")) {
+//      // Başlık parsing
+//      const level = parseInt(tagName.charAt(1)) || 1;
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "heading",
+//        content,
+//        properties: {
+//          level,
+//          fontSize: level === 1 ? 32 : level === 2 ? 28 : 24,
+//        },
+//      });
+//    } else if (tagName === "p") {
+//      // Paragraf parsing - link kontrolü ile
+//      const link = element.querySelector("a");
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "paragraph",
+//        content,
+//        properties: {
+//          fontSize: 16,
+//          link: link?.href || undefined,
+//        },
+//      });
+//    } else if (["ul", "ol"].includes(tagName)) {
+//      // Liste parsing
+//      const listItems = Array.from(element.querySelectorAll("li"))
+//        .map((li) => li.textContent || "")
+//        .join("\n");
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "list",
+//        content: listItems,
+//        properties: {
+//          ordered: tagName === "ol",
+//          listStyle: tagName === "ol" ? "decimal" : "disc",
+//        },
+//      });
+//    } else if (tagName === "blockquote") {
+//      // Alıntı parsing
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "quote",
+//        content,
+//        properties: {},
+//      });
+//    } else if (tagName === "pre" || element.querySelector("code")) {
+//      // Kod bloğu parsing
+//      const codeContent = element.querySelector("code")?.textContent || content;
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "code",
+//        content: codeContent,
+//        properties: {
+//          language: "javascript",
+//          backgroundColor: "#1e1e1e",
+//          color: "#d4d4d4",
+//        },
+//      });
+//    } else if (tagName === "hr") {
+//      // Ayırıcı parsing
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "divider",
+//        content: "",
+//        properties: {},
+//      });
+//    } else if (tagName === "iframe") {
+//      // Video iframe parsing
+//      const src = (element as HTMLIFrameElement).src;
+//      if (src && (src.includes("youtube") || src.includes("vimeo"))) {
+//        blocks.push({
+//          id: `block_${blockCounter++}`,
+//          type: "video",
+//          content: "",
+//          properties: {
+//            videoUrl: src,
+//            align: "center",
+//          },
+//        });
+//      }
+//    } else if (element.querySelector("iframe")) {
+//      // Video içeren div parsing
+//      const iframe = element.querySelector("iframe");
+//      const src = iframe?.src;
+//      if (src && (src.includes("youtube") || src.includes("vimeo"))) {
+//        blocks.push({
+//          id: `block_${blockCounter++}`,
+//          type: "video",
+//          content: "",
+//          properties: {
+//            videoUrl: src,
+//            align:
+//              (htmlElement.style.textAlign as
+//                | "center"
+//                | "left"
+//                | "right"
+//                | "justify") || "center",
+//          },
+//        });
+//      }
+//    } else if (
+//      element.querySelector("img") &&
+//      !element.querySelector('div[style*="inline-block"]')
+//    ) {
+//      // Resim parsing
+//      const img = element.querySelector("img");
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "image",
+//        content: "",
+//        properties: {
+//          url: img?.src || "",
+//          alt: img?.alt || "",
+//          align:
+//            (htmlElement.style.textAlign as
+//              | "center"
+//              | "left"
+//              | "right"
+//              | "justify") || "center",
+//        },
+//      });
+//    } else if (element.querySelector("table")) {
+//      // Gelişmiş tablo parsing
+//      const table = element.querySelector("table");
+//      const rows = Array.from(table?.querySelectorAll("tr") || []);
+//      const tableData = rows.map((row) =>
+//        Array.from(row.querySelectorAll("td, th")).map(
+//          (cell) => cell.textContent || ""
+//        )
+//      );
+//
+//      if (tableData.length > 0 && tableData[0].length > 0) {
+//        blocks.push({
+//          id: `block_${blockCounter++}`,
+//          type: "table",
+//          content: "",
+//          properties: {
+//            tableRows: tableData.length,
+//            tableCols: tableData[0].length,
+//            tableData,
+//          },
+//        });
+//      }
+//    } else if (element.querySelector('div[style*="inline-block"]')) {
+//      // Kolon sistemi parsing - video desteği ile
+//      const columnDivs = Array.from(
+//        element.querySelectorAll('div[style*="inline-block"]')
+//      );
+//      const columnCount = columnDivs.length;
+//      const columnTypes: ("text" | "image" | "code" | "video")[] = [];
+//      const columnContents: string[] = [];
+//
+//      columnDivs.forEach((colDiv) => {
+//        if (colDiv.querySelector("iframe")) {
+//          columnTypes.push("video");
+//          columnContents.push(colDiv.querySelector("iframe")?.src || "");
+//        } else if (colDiv.querySelector("img")) {
+//          columnTypes.push("image");
+//          columnContents.push(colDiv.querySelector("img")?.src || "");
+//        } else if (colDiv.querySelector("pre, code")) {
+//          columnTypes.push("code");
+//          columnContents.push(
+//            colDiv.querySelector("pre, code")?.textContent || ""
+//          );
+//        } else {
+//          columnTypes.push("text");
+//          columnContents.push(colDiv.textContent || "");
+//        }
+//      });
+//
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "columns",
+//        content: "",
+//        properties: {
+//          columnCount,
+//          columnGap: 20,
+//          columnTypes,
+//          columnContents,
+//        },
+//      });
+//    } else if (
+//      htmlElement.style &&
+//      htmlElement.style.height &&
+//      htmlElement.style.height.includes("px")
+//    ) {
+//      // Spacer parsing
+//      const height = parseInt(htmlElement.style.height) || 40;
+//      blocks.push({
+//        id: `block_${blockCounter++}`,
+//        type: "spacer",
+//        content: "",
+//        properties: { spacing: height },
+//      });
+//    } else {
+//      // Fallback - paragraph olarak ekle
+//      if (content.trim()) {
+//        blocks.push({
+//          id: `block_${blockCounter++}`,
+//          type: "paragraph",
+//          content,
+//          properties: { fontSize: 16 },
+//        });
+//      }
+//    }
+//  });
+//
+//  return blocks.length > 0
+//    ? blocks
+//    : [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
+//};
+
 export default function BlockEditor({
   value,
   onChange,
@@ -306,7 +567,12 @@ export default function BlockEditor({
       columns: {
         columnCount: 2,
         columnGap: 20,
-        columnTypes: ["text", "text"] as ("text" | "image" | "code")[],
+        columnTypes: ["text", "text"] as (
+          | "text"
+          | "image"
+          | "code"
+          | "video"
+        )[],
         columnContents: ["", ""] as string[],
       },
       spacer: { spacing: 40 },
@@ -320,12 +586,7 @@ export default function BlockEditor({
     const newBlock: Block = {
       id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       type,
-      content:
-        type === "table"
-          ? ""
-          : type === "columns"
-          ? "Sol kolon metni|||Sağ kolon metni"
-          : "",
+      content: "",
       properties:
         defaultProperties[type as keyof typeof defaultProperties] || {},
     };
@@ -445,6 +706,19 @@ export default function BlockEditor({
 
             return `<p style="${styleString}">${paragraphContent}</p>`;
 
+          case "video":
+            const embedUrl = getYouTubeEmbedUrl(
+              block.properties.videoUrl || ""
+            );
+            return `<h1 style="font-size: 24px; font-weight: 700;">${
+              block.properties.videoTitle
+            }</h1>
+            <div style="display: flex; justify-content: ${
+              block.properties.align || "center"
+            }; margin: 1rem 0;">
+              <iframe src="${embedUrl}" width="560" height="315" frameborder="0" allowfullscreen style="border-radius: 8px; max-width: 100%;"></iframe>
+            </div>`;
+
           case "list":
             const items = block.content
               .split("\n")
@@ -466,22 +740,22 @@ export default function BlockEditor({
 
           case "code":
             return `<div style="position: relative; margin: 1rem 0;">
-            <div style="background-color: ${
-              block.properties.backgroundColor || "#1e1e1e"
-            }; color: ${
+              <div style="background-color: ${
+                block.properties.backgroundColor || "#1e1e1e"
+              }; color: ${
               block.properties.color || "#d4d4d4"
             }; border-radius: 8px; padding: 1rem; font-family: 'Courier New', Consolas, monospace; font-size: 14px; line-height: 1.5; overflow-x: auto; border: 1px solid #333;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #333;">
-                <span style="color: #888; font-size: 12px;">${
-                  block.properties.language || "code"
-                }</span>
-                <button onclick="navigator.clipboard.writeText(this.parentNode.nextElementSibling.textContent)" style="background: #333; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #333;">
+                  <span style="color: #888; font-size: 12px;">${
+                    block.properties.language || "code"
+                  }</span>
+                  <button onclick="navigator.clipboard.writeText(this.parentNode.nextElementSibling.textContent)" style="background: #333; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                </div>
+                <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;"><code>${
+                  block.content || ""
+                }</code></pre>
               </div>
-              <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;"><code>${
-                block.content || ""
-              }</code></pre>
-            </div>
-          </div>`;
+            </div>`;
 
           case "quote":
             return `<blockquote style="border-left: 4px solid #e5e7eb; padding-left: 16px; font-style: italic; margin: 1rem 0; ${styleString}">${
@@ -523,9 +797,12 @@ export default function BlockEditor({
                 if (type === "text") {
                   columnHtml = `<p>${content}</p>`;
                 } else if (type === "image") {
-                  columnHtml = `<img src="${content}" style="width: 100%; height: auto;" />`;
+                  columnHtml = `<img src="${content}" style="width: 100%; height: auto; border-radius: 4px;" />`;
                 } else if (type === "code") {
-                  columnHtml = `<pre style="background: #1e1e1e; color: #d4d4d4; padding: 8px; border-radius: 4px;"><code>${content}</code></pre>`;
+                  columnHtml = `<pre style="background: #1e1e1e; color: #d4d4d4; padding: 8px; border-radius: 4px; font-size: 12px;"><code>${content}</code></pre>`;
+                } else if (type === "video") {
+                  const embedUrl = getYouTubeEmbedUrl(content);
+                  columnHtml = `<iframe src="${embedUrl}" width="100%" height="200" frameborder="0" allowfullscreen style="border-radius: 4px;"></iframe>`;
                 }
 
                 return `<div style="width: ${columnWidth}; display: inline-block; vertical-align: top; padding-right: ${
@@ -1311,6 +1588,63 @@ export default function BlockEditor({
               </div>
             )}
 
+            {block.type === "video" && (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={block.properties.videoTitle || ""}
+                  onChange={(e) =>
+                    updateBlock(block.id, {
+                      properties: {
+                        ...block.properties,
+                        videoTitle: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="Video başlığı (opsiyonel)"
+                  className="w-full p-2 border rounded text-sm"
+                />
+                <input
+                  type="url"
+                  value={block.properties.videoUrl || ""}
+                  onChange={(e) =>
+                    updateBlock(block.id, {
+                      properties: {
+                        ...block.properties,
+                        videoUrl: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="Video URL'si girin..."
+                  className="w-full p-2 border rounded text-sm"
+                  onFocus={() => setActiveBlockId(block.id)}
+                />
+                {block.properties.videoTitle && (
+                  <h1 className="text-2xl font-bold">
+                    {block.properties.videoTitle}
+                  </h1>
+                )}
+                {block.properties.videoUrl && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: block.properties.align ?? "center",
+                      margin: "1rem 0",
+                    }}
+                  >
+                    <iframe
+                      src={getYouTubeEmbedUrl(block.properties.videoUrl)}
+                      width="560"
+                      height="315"
+                      frameBorder="0"
+                      allowFullScreen
+                      style={{ borderRadius: "8px", maxWidth: "100%" }}
+                    ></iframe>
+                  </div>
+                )}
+              </div>
+            )}
+
             {block.type === "image" && (
               <div className="space-y-2">
                 <input
@@ -1718,6 +2052,15 @@ export default function BlockEditor({
                 >
                   <Image size={18} />
                   <span className="text-xs">Resim</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addBlock("video", block.id)}
+                  className="p-3 hover:bg-gray-100 rounded flex flex-col items-center gap-1"
+                  title="Video"
+                >
+                  <Video size={18} />
+                  <span className="text-xs">Video</span>
                 </button>
                 <button
                   type="button"

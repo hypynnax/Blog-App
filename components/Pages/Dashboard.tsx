@@ -129,7 +129,9 @@ export default function Dashboard() {
               Toplam Görüntülenme
             </h3>
             <p className="text-3xl font-bold text-green-600">
-              {user?._count?.views}
+              {user?._count?.views && user?._count?.views != 0
+                ? user?._count?.views / 2
+                : user?._count?.views}
             </p>
           </div>
         </div>
@@ -187,7 +189,12 @@ export default function Dashboard() {
                         {post.status === "PUBLISHED" ? "Yayında" : "Taslak"}
                       </span>
                       <span>•</span>
-                      <span>{post.viewCount} görüntülenme</span>
+                      <span>
+                        {post.viewCount && post.viewCount != 0
+                          ? post.viewCount / 2
+                          : post.viewCount}{" "}
+                        görüntülenme
+                      </span>
                       <span>•</span>
                       <span>{post._count.comments} yorum</span>
                     </div>

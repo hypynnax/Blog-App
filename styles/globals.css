@@ -35,3 +35,12 @@ body {
   border-right: 3px solid black;
   animation: blink-border 1s step-start infinite;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -189,6 +189,9 @@ export default function EditPost({ postId }: { postId: string }) {
                 placeholder="Yazınızın kısa özetini girin"
                 maxLength={500}
               />
+              <p className="text-xs text-end">
+                Harf : {formData.excerpt.length}
+              </p>
             </div>
 
             {/* Category & Cover Image */}
@@ -243,7 +246,6 @@ export default function EditPost({ postId }: { postId: string }) {
               onChange={(value) =>
                 setFormData((prev) => ({ ...prev, content: value }))
               }
-              placeholder="Yazınızın içeriğini buraya yazın..."
             />
           </div>
 

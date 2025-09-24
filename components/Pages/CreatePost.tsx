@@ -138,6 +138,9 @@ export default function CreatePost() {
                 placeholder="Yazınızın kısa özetini girin"
                 maxLength={500}
               />
+              <p className="text-xs text-end">
+                Harf : {formData.excerpt.length}
+              </p>
             </div>
 
             {/* Category & Cover Image */}
