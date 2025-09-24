@@ -39,9 +39,12 @@ export async function generateMetadata({
 }
 
 async function getBlogById(id: string) {
-  const res = await fetch(`https://bloguygulamam.vercel.app/api/post/get/no-views/${id}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `https://bloguygulamam.vercel.app/api/post/get/no-views/${id}`,
+    {
+      cache: "no-store",
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Yazı alınamadı");

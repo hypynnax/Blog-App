@@ -4,9 +4,9 @@ import ProfileDetailPage from "@/components/Pages/ProfileDetail";
 export async function generateMetadata({
   params,
 }: {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }): Promise<Metadata> {
-  const username = params.username;
+  const { username } = await params;
   return {
     title: `${username} - Kullanıcı Profili`,
     description: `${username} kullanıcısının profil sayfası`,
@@ -19,10 +19,11 @@ export async function generateMetadata({
   };
 }
 
-export default function ProfileDetail({
+export default async function ProfileDetail({
   params,
 }: {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }) {
-  return <ProfileDetailPage username={params.username} />;
+  const { username } = await params;
+  return <ProfileDetailPage username={username} />;
 }

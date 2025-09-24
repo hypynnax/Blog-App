@@ -1,13 +1,11 @@
 import { Metadata } from "next";
 import EditPostPage from "@/components/Pages/EditPost";
 
-interface EditPostProps {
-  params: { id: string };
-}
-
 export async function generateMetadata({
   params,
-}: EditPostProps): Promise<Metadata> {
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   return {
     title: `Yazıyı Düzenle`,
     description: "Blog yazınızı düzenleyin ve güncelleyin.",
@@ -15,6 +13,11 @@ export async function generateMetadata({
   };
 }
 
-export default function EditPost({ params }: EditPostProps) {
-  return <EditPostPage postId={params.id} />;
+export default async function EditPost({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <EditPostPage postId={id} />;
 }
