@@ -30,20 +30,17 @@ function ResetPasswordForm() {
           toast.error("Oturum hatası");
         }
 
-        supabase.auth.onAuthStateChange((event, session) => {
-          if (event === "PASSWORD_RECOVERY") {
-            if (session) {
-              setIsValidSession(true);
-            } else {
-              // Geçersiz session
-              toast.error(
-                "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-              );
-              router.push("/sifremi-unuttum");
-              return;
-            }
-          }
-        });
+        if (data.session) {
+          setIsValidSession(true);
+        } else {
+          // Geçersiz session
+          setIsValidSession(false);
+          toast.error(
+            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+          );
+          router.push("/sifremi-unuttum");
+          return;
+        }
       } catch (error) {
         toast.error("Oturum kontrol edilemedi");
         router.push("/sifremi-unuttum");
