@@ -32,7 +32,9 @@ function ResetPasswordForm() {
 
         supabase.auth.onAuthStateChange((event, session) => {
           if (event === "PASSWORD_RECOVERY") {
-            if (!session) {
+            if (session) {
+              setIsValidSession(true);
+            } else {
               // Geçersiz session
               toast.error(
                 "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
