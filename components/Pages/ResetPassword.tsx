@@ -24,18 +24,41 @@ function ResetPasswordForm() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // URL'den token ve type parametrelerini al
-        const token = searchParams.get("token");
-        const type = searchParams.get("type");
+        // Önce Supabase'in otomatik auth callback'ini dene
+        const { data: authData, error: authError } =
+          await supabase.auth.getSession();
 
-        console.log("URL Parameters:", { token, type });
+        if (authData.session) {
+          console.log("Found existing session:", authData.session.user.id);
+          setIsValidSession(true);
+          setCheckingSession(false);
+          return;
+        }
 
-        if (token && type === "recovery") {
-          console.log("Processing recovery token...");
+        // URL fragment (#) parametrelerini al - searchParams değil!
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+        const token = hashParams.get("token");
+        const type = hashParams.get("type");
+
+        // Ayrıca query parametrelerini de kontrol et
+        const queryToken = searchParams.get("token");
+        const queryType = searchParams.get("type");
+
+        console.log("Hash Parameters:", { token, type });
+        console.log("Query Parameters:", { queryToken, queryType });
+
+        // Hash veya query parametrelerinden birini kullan
+        const finalToken = token || queryToken;
+        const finalType = type || queryType;
+
+        if (finalToken && finalType === "recovery") {
+          console.log("Processing recovery token...", finalToken);
 
           // PKCE token'ı verify et
           const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: token,
+            token_hash: finalToken,
             type: "recovery",
           });
 
@@ -54,32 +77,30 @@ function ResetPasswordForm() {
 
             // URL'yi temizle
             window.history.replaceState({}, document.title, "/sifre-sifirla");
+          } else if (data.user) {
+            // Bazen session hemen oluşmayabilir, user varsa bekle
+            console.log("User found, waiting for session...");
+            setTimeout(() => {
+              setIsValidSession(true);
+            }, 1000);
           }
         } else {
           // Token yok, mevcut session'ı kontrol et
-          const {
-            data: { session },
-            error,
-          } = await supabase.auth.getSession();
+          console.log("No token found, checking existing session...");
 
-          if (error) {
-            console.error("Session error:", error);
+          if (authError) {
+            console.error("Session error:", authError);
             toast.error("Oturum hatası!");
             router.push("/sifremi-unuttum");
             return;
           }
 
-          if (session) {
-            console.log("Existing session found");
-            setIsValidSession(true);
-          } else {
-            console.log("No valid session or token");
-            toast.error(
-              "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-            );
-            router.push("/sifremi-unuttum");
-            return;
-          }
+          console.log("No valid session or token");
+          toast.error(
+            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+          );
+          router.push("/sifremi-unuttum");
+          return;
         }
       } catch (error) {
         console.error("Auth callback error:", error);
