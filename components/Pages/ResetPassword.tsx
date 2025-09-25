@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -18,47 +18,87 @@ function ResetPasswordForm() {
   const [checkingSession, setCheckingSession] = useState(true);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const handleAuthCallback = async () => {
       try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+        // URL'den token ve type parametrelerini al
+        const token = searchParams.get("token");
+        const type = searchParams.get("type");
 
-        if (error) {
-          console.error("Session error:", error);
-          toast.error("Oturum hatası!");
-          router.push("/sifremi-unuttum");
-          return;
-        }
+        console.log("URL Parameters:", { token, type });
 
-        if (session) {
-          setIsValidSession(true);
+        if (token && type === "recovery") {
+          console.log("Processing recovery token...");
+
+          // PKCE token'ı verify et
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: "recovery",
+          });
+
+          console.log("Verify OTP result:", { data, error });
+
+          if (error) {
+            console.error("Token verification error:", error);
+            toast.error("Geçersiz şifre sıfırlama linki!");
+            router.push("/sifremi-unuttum");
+            return;
+          }
+
+          if (data.session) {
+            console.log("Session established successfully");
+            setIsValidSession(true);
+
+            // URL'yi temizle
+            window.history.replaceState({}, document.title, "/sifre-sifirla");
+          }
         } else {
-          toast.error(
-            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-          );
-          router.push("/sifremi-unuttum");
-          return;
+          // Token yok, mevcut session'ı kontrol et
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession();
+
+          if (error) {
+            console.error("Session error:", error);
+            toast.error("Oturum hatası!");
+            router.push("/sifremi-unuttum");
+            return;
+          }
+
+          if (session) {
+            console.log("Existing session found");
+            setIsValidSession(true);
+          } else {
+            console.log("No valid session or token");
+            toast.error(
+              "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+            );
+            router.push("/sifremi-unuttum");
+            return;
+          }
         }
       } catch (error) {
-        console.error("Session check error:", error);
-        toast.error("Oturum kontrol edilemedi");
+        console.error("Auth callback error:", error);
+        toast.error("Oturum işlenirken hata oluştu");
         router.push("/sifremi-unuttum");
       } finally {
         setCheckingSession(false);
       }
     };
 
-    checkSession();
+    handleAuthCallback();
 
+    // Auth state değişikliklerini dinle
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "PASSWORD_RECOVERY") {
+      console.log("Auth state change:", event, session?.user?.id);
+
+      if (event === "TOKEN_REFRESHED" && session) {
         setIsValidSession(true);
         setCheckingSession(false);
       } else if (event === "SIGNED_OUT") {
@@ -67,7 +107,7 @@ function ResetPasswordForm() {
     });
 
     return () => subscription.unsubscribe();
-  }, [router, supabase]);
+  }, [router, supabase, searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
