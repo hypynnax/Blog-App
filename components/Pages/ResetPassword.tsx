@@ -27,13 +27,22 @@ function ResetPasswordForm() {
     const handleAuthCallback = async () => {
       try {
         if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(
+            code
+          );
+
+          if (error || !data.user) {
+            setIsValidSession(false);
+            toast.error(
+              "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+            );
+            router.push("/sifremi-unuttum");
+            return;
+          }
+
           setIsValidSession(true);
         } else {
-          // Geçersiz session
           setIsValidSession(false);
-          toast.error(
-            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-          );
           router.push("/sifremi-unuttum");
           return;
         }

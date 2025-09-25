@@ -119,10 +119,232 @@ const getYouTubeEmbedUrl = (url: string): string => {
   return url;
 };
 
-// Html parse et
+// HTML'den stil özelliklerini parse eden yardımcı fonksiyonlar
+const parseStyleAttribute = (styleStr: string): Record<string, string> => {
+  if (!styleStr) return {};
+
+  const styles: Record<string, string> = {};
+  styleStr.split(";").forEach((rule) => {
+    const [property, value] = rule.split(":").map((s) => s.trim());
+    if (property && value) {
+      // Camel case'e çevir (font-size -> fontSize)
+      const camelProperty = property.replace(/-([a-z])/g, (_, letter) =>
+        letter.toUpperCase()
+      );
+      styles[camelProperty] = value;
+    }
+  });
+  return styles;
+};
+
+const extractTextAlign = (
+  styles: Record<string, string>
+): "left" | "center" | "right" | "justify" | undefined => {
+  const align = styles.textAlign;
+  if (["left", "center", "right", "justify"].includes(align)) {
+    return align as "left" | "center" | "right" | "justify";
+  }
+  return undefined;
+};
+
+const extractFontSize = (
+  styles: Record<string, string>
+): number | undefined => {
+  const fontSize = styles.fontSize;
+  if (fontSize) {
+    const match = fontSize.match(/(\d+)px/);
+    return match ? parseInt(match[1]) : undefined;
+  }
+  return undefined;
+};
+
+const extractSpacing = (styles: Record<string, string>): number | undefined => {
+  const height = styles.height;
+  if (height) {
+    const match = height.match(/(\d+)px/);
+    return match ? parseInt(match[1]) : undefined;
+  }
+  return undefined;
+};
+
+// Video URL'lerini işleyen fonksiyon
+const extractVideoInfo = (
+  element: Element
+): { videoUrl?: string; videoTitle?: string } => {
+  const iframe = element.querySelector("iframe");
+  let videoUrl = "";
+  let videoTitle = "";
+
+  if (iframe) {
+    const src = iframe.getAttribute("src") || "";
+
+    // YouTube embed URL'sini normal URL'ye çevir
+    if (src.includes("youtube.com/embed/")) {
+      const videoId = src.split("/embed/")[1]?.split("?")[0];
+      videoUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : src;
+    } else if (src.includes("vimeo.com")) {
+      const videoId = src.split("/video/")[1]?.split("?")[0];
+      videoUrl = videoId ? `https://vimeo.com/${videoId}` : src;
+    } else {
+      videoUrl = src;
+    }
+  }
+
+  // Video başlığını h1'den al
+  const titleElement = element.querySelector("h1");
+  if (titleElement) {
+    videoTitle = titleElement.textContent?.trim() || "";
+  }
+
+  return { videoUrl, videoTitle };
+};
+
+// Tablo verilerini parse eden fonksiyon
+const parseTableData = (
+  table: Element
+): { tableData: string[][]; tableRows: number; tableCols: number } => {
+  const rows = Array.from(table.querySelectorAll("tr"));
+  const tableData = rows.map((row) =>
+    Array.from(row.querySelectorAll("td, th")).map(
+      (cell) => cell.textContent?.trim() || ""
+    )
+  );
+
+  return {
+    tableData,
+    tableRows: tableData.length,
+    tableCols: tableData[0]?.length || 3,
+  };
+};
+
+// Kolonları parse eden fonksiyon
+const parseColumns = (
+  element: Element
+): {
+  columnCount: number;
+  columnGap: number;
+  columnTypes: ("text" | "image" | "code" | "video")[];
+  columnContents: string[];
+} => {
+  const columnDivs = Array.from(
+    element.querySelectorAll('div[style*="inline-block"], div[style*="width:"]')
+  );
+  const columnCount = columnDivs.length;
+  const columnTypes: ("text" | "image" | "code" | "video")[] = [];
+  const columnContents: string[] = [];
+
+  // Gap'i parse et (ilk div'in padding-right değerinden)
+  let columnGap = 20;
+  const firstDiv = columnDivs[0] as HTMLElement;
+  if (firstDiv?.style?.paddingRight) {
+    const gapMatch = firstDiv.style.paddingRight.match(/(\d+)px/);
+    if (gapMatch) columnGap = parseInt(gapMatch[1]);
+  }
+
+  columnDivs.forEach((colDiv) => {
+    if (colDiv.querySelector("iframe")) {
+      columnTypes.push("video");
+      const iframe = colDiv.querySelector("iframe");
+      const src = iframe?.getAttribute("src") || "";
+
+      if (src.includes("youtube.com/embed/")) {
+        const videoId = src.split("/embed/")[1]?.split("?")[0];
+        columnContents.push(
+          videoId ? `https://www.youtube.com/watch?v=${videoId}` : src
+        );
+      } else {
+        columnContents.push(src);
+      }
+    } else if (colDiv.querySelector("img")) {
+      columnTypes.push("image");
+      columnContents.push(colDiv.querySelector("img")?.src || "");
+    } else if (colDiv.querySelector("pre, code")) {
+      columnTypes.push("code");
+      columnContents.push(colDiv.querySelector("pre, code")?.textContent || "");
+    } else {
+      columnTypes.push("text");
+      columnContents.push(colDiv.textContent?.trim() || "");
+    }
+  });
+
+  return { columnCount, columnGap, columnTypes, columnContents };
+};
+
+// Liste stilini parse eden fonksiyon
+const parseListStyle = (
+  element: Element
+): {
+  ordered: boolean;
+  listStyle:
+    | "disc"
+    | "circle"
+    | "square"
+    | "decimal"
+    | "lower-alpha"
+    | "upper-alpha"
+    | "lower-roman"
+    | "upper-roman";
+} => {
+  const tagName = element.tagName.toLowerCase();
+  const ordered = tagName === "ol";
+
+  const htmlElement = element as HTMLElement;
+  const computedStyle = window.getComputedStyle
+    ? window.getComputedStyle(htmlElement)
+    : null;
+  const listStyleType =
+    computedStyle?.listStyleType || htmlElement.style.listStyleType;
+
+  let listStyle:
+    | "disc"
+    | "circle"
+    | "square"
+    | "decimal"
+    | "lower-alpha"
+    | "upper-alpha"
+    | "lower-roman"
+    | "upper-roman";
+
+  if (ordered) {
+    switch (listStyleType) {
+      case "lower-alpha":
+        listStyle = "lower-alpha";
+        break;
+      case "upper-alpha":
+        listStyle = "upper-alpha";
+        break;
+      case "lower-roman":
+        listStyle = "lower-roman";
+        break;
+      case "upper-roman":
+        listStyle = "upper-roman";
+        break;
+      default:
+        listStyle = "decimal";
+        break;
+    }
+  } else {
+    switch (listStyleType) {
+      case "circle":
+        listStyle = "circle";
+        break;
+      case "square":
+        listStyle = "square";
+        break;
+      default:
+        listStyle = "disc";
+        break;
+    }
+  }
+
+  return { ordered, listStyle };
+};
+
+// Gelişmiş parseHtmlToBlocks fonksiyonu
 const parseHtmlToBlocks = (html: string): Block[] => {
-  if (!html || html.trim() === "")
+  if (!html || html.trim() === "") {
     return [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
+  }
 
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = html;
@@ -132,57 +354,136 @@ const parseHtmlToBlocks = (html: string): Block[] => {
 
   Array.from(tempDiv.children).forEach((element) => {
     const tagName = element.tagName.toLowerCase();
-    const content = element.textContent || "";
     const htmlElement = element as HTMLElement;
 
+    // Stil özelliklerini parse et
+    const styles = parseStyleAttribute(
+      htmlElement.style.cssText || htmlElement.getAttribute("style") || ""
+    );
+
+    // Ortak özellikler
+    const baseProperties = {
+      align: extractTextAlign(styles),
+      fontSize: extractFontSize(styles),
+      color: styles.color || undefined,
+      backgroundColor: styles.backgroundColor || undefined,
+      bold:
+        styles.fontWeight === "bold" || styles.fontWeight === "700" || false,
+      italic: styles.fontStyle === "italic" || false,
+      underline: styles.textDecoration?.includes("underline") || false,
+    };
+
+    // Drop cap kontrolü (float: left olan span'lar)
+    const hasDropCap =
+      element.querySelector('span[style*="float: left"]') !== null;
+
+    // Girinti kontrolü
+    const hasIndent = Boolean(styles.textIndent && styles.textIndent !== "0px");
+    const hasIndentAll = Boolean(
+      styles.paddingLeft && styles.paddingLeft !== "0px"
+    );
+
+    // İçeriği temizle (drop cap span'larını kaldır)
+    let content = element.textContent || "";
+    if (hasDropCap) {
+      // Drop cap span'ından sonraki metni al
+      const spans = element.querySelectorAll("span");
+      if (spans.length >= 2) {
+        content = spans[0].textContent + spans[1].textContent;
+      }
+    }
+
+    // Link kontrolü (paragraph için)
+    let linkUrl = "";
+    if (tagName === "p") {
+      const linkElement = element.querySelector("a");
+      if (linkElement) {
+        linkUrl = linkElement.getAttribute("href") || "";
+        content = linkElement.textContent || content;
+      }
+    }
+
+    // Blok tipine göre işleme
     if (tagName.startsWith("h")) {
       const level = parseInt(tagName.charAt(1)) || 1;
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "heading",
-        content,
+        content: content.trim(),
         properties: {
+          ...baseProperties,
           level,
-          fontSize: level === 1 ? 32 : level === 2 ? 28 : 24,
+          dropCap: hasDropCap,
+          indent: hasIndent,
+          indentAll: hasIndentAll,
+          fontSize:
+            baseProperties.fontSize ||
+            (level === 1 ? 32 : level === 2 ? 28 : 24),
         },
       });
     } else if (tagName === "p") {
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "paragraph",
-        content,
-        properties: { fontSize: 16 },
+        content: content.trim(),
+        properties: {
+          ...baseProperties,
+          dropCap: hasDropCap,
+          indent: hasIndent,
+          indentAll: hasIndentAll,
+          link: linkUrl || undefined,
+          fontSize: baseProperties.fontSize || 16,
+        },
       });
     } else if (["ul", "ol"].includes(tagName)) {
       const listItems = Array.from(element.querySelectorAll("li"))
-        .map((li) => li.textContent || "")
+        .map((li) => li.textContent?.trim() || "")
         .join("\n");
+
+      const { ordered, listStyle } = parseListStyle(element);
+
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "list",
         content: listItems,
         properties: {
-          ordered: tagName === "ol",
-          listStyle: tagName === "ol" ? "decimal" : "disc",
+          ...baseProperties,
+          ordered,
+          listStyle,
+          indent: hasIndent,
+          indentAll: hasIndentAll,
         },
       });
     } else if (tagName === "blockquote") {
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "quote",
-        content,
-        properties: {},
+        content: content.trim(),
+        properties: {
+          ...baseProperties,
+          indent: hasIndent,
+          indentAll: hasIndentAll,
+        },
       });
     } else if (tagName === "pre" || element.querySelector("code")) {
-      const codeContent = element.querySelector("code")?.textContent || content;
+      const codeElement = element.querySelector("code") || element;
+      const codeContent = codeElement.textContent || "";
+
+      // Kod dilini tespit et (code header'dan)
+      let language = "javascript";
+      const languageSpan = element.querySelector('span[style*="color: #888"]');
+      if (languageSpan) {
+        language = languageSpan.textContent?.trim() || "javascript";
+      }
+
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "code",
         content: codeContent,
         properties: {
-          language: "javascript",
-          backgroundColor: "#1e1e1e",
-          color: "#d4d4d4",
+          language,
+          backgroundColor: styles.backgroundColor || "#1e1e1e",
+          color: styles.color || "#d4d4d4",
         },
       });
     } else if (tagName === "hr") {
@@ -190,94 +491,97 @@ const parseHtmlToBlocks = (html: string): Block[] => {
         id: `block_${blockCounter++}`,
         type: "divider",
         content: "",
-        properties: {},
+        properties: baseProperties,
+      });
+    } else if (element.querySelector("iframe")) {
+      // Video bloğu
+      const { videoUrl, videoTitle } = extractVideoInfo(element);
+
+      blocks.push({
+        id: `block_${blockCounter++}`,
+        type: "video",
+        content: "",
+        properties: {
+          ...baseProperties,
+          videoUrl,
+          videoTitle,
+        },
       });
     } else if (
       element.querySelector("img") &&
       !element.querySelector('div[style*="inline-block"]')
     ) {
+      // Tek resim bloğu
       const img = element.querySelector("img");
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "image",
         content: "",
         properties: {
+          ...baseProperties,
           url: img?.src || "",
           alt: img?.alt || "",
-          align: "center",
         },
       });
-    } else if (element.querySelector("table")) {
+    } else if (
+      element.getAttribute("data-block-type") === "table" ||
+      element.querySelector("table")
+    ) {
+      // Tablo bloğu
       const table = element.querySelector("table");
-      const rows = Array.from(table?.querySelectorAll("tr") || []);
-      const tableData = rows.map((row) =>
-        Array.from(row.querySelectorAll("td, th")).map(
-          (cell) => cell.textContent || ""
-        )
-      );
+      const { tableData, tableRows, tableCols } = parseTableData(table!);
+
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "table",
         content: "",
         properties: {
-          tableRows: tableData.length,
-          tableCols: tableData[0]?.length || 3,
+          ...baseProperties,
+          tableRows,
+          tableCols,
           tableData,
         },
       });
-    } else if (element.querySelector('div[style*="inline-block"]')) {
-      const columnDivs = Array.from(
-        element.querySelectorAll('div[style*="inline-block"]')
-      );
-      const columnCount = columnDivs.length;
-      const columnTypes: ("text" | "image" | "code")[] = [];
-      const columnContents: string[] = [];
-
-      columnDivs.forEach((colDiv) => {
-        if (colDiv.querySelector("img")) {
-          columnTypes.push("image");
-          columnContents.push(colDiv.querySelector("img")?.src || "");
-        } else if (colDiv.querySelector("pre, code")) {
-          columnTypes.push("code");
-          columnContents.push(
-            colDiv.querySelector("pre, code")?.textContent || ""
-          );
-        } else {
-          columnTypes.push("text");
-          columnContents.push(colDiv.textContent || "");
-        }
-      });
+    } else if (
+      element.getAttribute("data-block-type") === "columns" ||
+      (element.querySelector('div[style*="inline-block"]') &&
+        element.children.length > 1)
+    ) {
+      // Kolon bloğu
+      const columnData = parseColumns(element);
 
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "columns",
         content: "",
         properties: {
-          columnCount,
-          columnGap: 20,
-          columnTypes,
-          columnContents,
+          ...baseProperties,
+          ...columnData,
         },
       });
-    } else if (
-      htmlElement.style &&
-      htmlElement.style.height &&
-      htmlElement.style.height.includes("px")
-    ) {
-      const height = parseInt(htmlElement.style.height) || 40;
+    } else if (styles.height && styles.height.includes("px")) {
+      // Spacer bloğu
+      const spacing = extractSpacing(styles) || 40;
       blocks.push({
         id: `block_${blockCounter++}`,
         type: "spacer",
         content: "",
-        properties: { spacing: height },
+        properties: { spacing },
       });
     } else {
+      // Varsayılan olarak paragraf
       if (content.trim()) {
         blocks.push({
           id: `block_${blockCounter++}`,
           type: "paragraph",
-          content,
-          properties: { fontSize: 16 },
+          content: content.trim(),
+          properties: {
+            ...baseProperties,
+            dropCap: hasDropCap,
+            indent: hasIndent,
+            indentAll: hasIndentAll,
+            fontSize: baseProperties.fontSize || 16,
+          },
         });
       }
     }
@@ -287,234 +591,6 @@ const parseHtmlToBlocks = (html: string): Block[] => {
     ? blocks
     : [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
 };
-
-//const parseHtmlToBlocks = (html: string): Block[] => {
-//  if (!html || html.trim() === "")
-//    return [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
-//
-//  const tempDiv = document.createElement("div");
-//  tempDiv.innerHTML = html;
-//
-//  const blocks: Block[] = [];
-//  let blockCounter = 1;
-//
-//  Array.from(tempDiv.children).forEach((element) => {
-//    const tagName = element.tagName.toLowerCase();
-//    const content = element.textContent || "";
-//    const htmlElement = element as HTMLElement;
-//
-//    if (tagName.startsWith("h")) {
-//      // Başlık parsing
-//      const level = parseInt(tagName.charAt(1)) || 1;
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "heading",
-//        content,
-//        properties: {
-//          level,
-//          fontSize: level === 1 ? 32 : level === 2 ? 28 : 24,
-//        },
-//      });
-//    } else if (tagName === "p") {
-//      // Paragraf parsing - link kontrolü ile
-//      const link = element.querySelector("a");
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "paragraph",
-//        content,
-//        properties: {
-//          fontSize: 16,
-//          link: link?.href || undefined,
-//        },
-//      });
-//    } else if (["ul", "ol"].includes(tagName)) {
-//      // Liste parsing
-//      const listItems = Array.from(element.querySelectorAll("li"))
-//        .map((li) => li.textContent || "")
-//        .join("\n");
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "list",
-//        content: listItems,
-//        properties: {
-//          ordered: tagName === "ol",
-//          listStyle: tagName === "ol" ? "decimal" : "disc",
-//        },
-//      });
-//    } else if (tagName === "blockquote") {
-//      // Alıntı parsing
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "quote",
-//        content,
-//        properties: {},
-//      });
-//    } else if (tagName === "pre" || element.querySelector("code")) {
-//      // Kod bloğu parsing
-//      const codeContent = element.querySelector("code")?.textContent || content;
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "code",
-//        content: codeContent,
-//        properties: {
-//          language: "javascript",
-//          backgroundColor: "#1e1e1e",
-//          color: "#d4d4d4",
-//        },
-//      });
-//    } else if (tagName === "hr") {
-//      // Ayırıcı parsing
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "divider",
-//        content: "",
-//        properties: {},
-//      });
-//    } else if (tagName === "iframe") {
-//      // Video iframe parsing
-//      const src = (element as HTMLIFrameElement).src;
-//      if (src && (src.includes("youtube") || src.includes("vimeo"))) {
-//        blocks.push({
-//          id: `block_${blockCounter++}`,
-//          type: "video",
-//          content: "",
-//          properties: {
-//            videoUrl: src,
-//            align: "center",
-//          },
-//        });
-//      }
-//    } else if (element.querySelector("iframe")) {
-//      // Video içeren div parsing
-//      const iframe = element.querySelector("iframe");
-//      const src = iframe?.src;
-//      if (src && (src.includes("youtube") || src.includes("vimeo"))) {
-//        blocks.push({
-//          id: `block_${blockCounter++}`,
-//          type: "video",
-//          content: "",
-//          properties: {
-//            videoUrl: src,
-//            align:
-//              (htmlElement.style.textAlign as
-//                | "center"
-//                | "left"
-//                | "right"
-//                | "justify") || "center",
-//          },
-//        });
-//      }
-//    } else if (
-//      element.querySelector("img") &&
-//      !element.querySelector('div[style*="inline-block"]')
-//    ) {
-//      // Resim parsing
-//      const img = element.querySelector("img");
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "image",
-//        content: "",
-//        properties: {
-//          url: img?.src || "",
-//          alt: img?.alt || "",
-//          align:
-//            (htmlElement.style.textAlign as
-//              | "center"
-//              | "left"
-//              | "right"
-//              | "justify") || "center",
-//        },
-//      });
-//    } else if (element.querySelector("table")) {
-//      // Gelişmiş tablo parsing
-//      const table = element.querySelector("table");
-//      const rows = Array.from(table?.querySelectorAll("tr") || []);
-//      const tableData = rows.map((row) =>
-//        Array.from(row.querySelectorAll("td, th")).map(
-//          (cell) => cell.textContent || ""
-//        )
-//      );
-//
-//      if (tableData.length > 0 && tableData[0].length > 0) {
-//        blocks.push({
-//          id: `block_${blockCounter++}`,
-//          type: "table",
-//          content: "",
-//          properties: {
-//            tableRows: tableData.length,
-//            tableCols: tableData[0].length,
-//            tableData,
-//          },
-//        });
-//      }
-//    } else if (element.querySelector('div[style*="inline-block"]')) {
-//      // Kolon sistemi parsing - video desteği ile
-//      const columnDivs = Array.from(
-//        element.querySelectorAll('div[style*="inline-block"]')
-//      );
-//      const columnCount = columnDivs.length;
-//      const columnTypes: ("text" | "image" | "code" | "video")[] = [];
-//      const columnContents: string[] = [];
-//
-//      columnDivs.forEach((colDiv) => {
-//        if (colDiv.querySelector("iframe")) {
-//          columnTypes.push("video");
-//          columnContents.push(colDiv.querySelector("iframe")?.src || "");
-//        } else if (colDiv.querySelector("img")) {
-//          columnTypes.push("image");
-//          columnContents.push(colDiv.querySelector("img")?.src || "");
-//        } else if (colDiv.querySelector("pre, code")) {
-//          columnTypes.push("code");
-//          columnContents.push(
-//            colDiv.querySelector("pre, code")?.textContent || ""
-//          );
-//        } else {
-//          columnTypes.push("text");
-//          columnContents.push(colDiv.textContent || "");
-//        }
-//      });
-//
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "columns",
-//        content: "",
-//        properties: {
-//          columnCount,
-//          columnGap: 20,
-//          columnTypes,
-//          columnContents,
-//        },
-//      });
-//    } else if (
-//      htmlElement.style &&
-//      htmlElement.style.height &&
-//      htmlElement.style.height.includes("px")
-//    ) {
-//      // Spacer parsing
-//      const height = parseInt(htmlElement.style.height) || 40;
-//      blocks.push({
-//        id: `block_${blockCounter++}`,
-//        type: "spacer",
-//        content: "",
-//        properties: { spacing: height },
-//      });
-//    } else {
-//      // Fallback - paragraph olarak ekle
-//      if (content.trim()) {
-//        blocks.push({
-//          id: `block_${blockCounter++}`,
-//          type: "paragraph",
-//          content,
-//          properties: { fontSize: 16 },
-//        });
-//      }
-//    }
-//  });
-//
-//  return blocks.length > 0
-//    ? blocks
-//    : [{ id: "block_1", type: "paragraph", content: "", properties: {} }];
-//};
 
 export default function BlockEditor({
   value,
@@ -782,7 +858,7 @@ export default function BlockEditor({
                     .join("")}</tr>`
               )
               .join("");
-            return `<table style="width: 100%; border-collapse: collapse; margin: 1rem 0; ${styleString}"><tbody>${tableRows}</tbody></table>`;
+            return `<div data-block-type="table" style="${styleString}"><table style="width: 100%; border-collapse: collapse; margin: 1rem 0;"><tbody>${tableRows}</tbody></table></div>`;
 
           case "columns":
             const columns = (block.properties.columnContents || [])
@@ -810,7 +886,7 @@ export default function BlockEditor({
                 }px;">${columnHtml}</div>`;
               })
               .join("");
-            return `<div style="margin: 1rem 0; ${styleString}">${columns}</div>`;
+            return `<div data-block-type="columns" style="margin: 1rem 0; ${styleString}">${columns}</div>`;
 
           case "spacer":
             return `<div style="height: ${
@@ -911,7 +987,7 @@ export default function BlockEditor({
           onClick={() => setActiveBlockId(block.id)}
         >
           {/* Sol Toolbar */}
-          <div className="absolute left-0 top-0 h-full w-8 flex flex-col items-center justify-start pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute left-0 top-0 h-full w-8 flex flex-col items-center justify-start pt-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
             <button
               type="button"
               onClick={(e) => {
@@ -955,7 +1031,7 @@ export default function BlockEditor({
 
           {/* Gelişmiş Property Panel */}
           {showProps && (
-            <div className="absolute left-10 top-0 bg-white border shadow-lg rounded-lg p-4 z-30 w-80 max-h-96 overflow-y-auto menu-container">
+            <div className="absolute -left-12 lg:left-10 top-0 bg-white border shadow-lg rounded-lg p-4 z-30 w-72 lg:w-80 max-h-96 overflow-y-auto menu-container">
               <div className="space-y-4">
                 {/* Temel Özellikler */}
                 <div>
@@ -1589,7 +1665,7 @@ export default function BlockEditor({
             )}
 
             {block.type === "video" && (
-              <div className="space-y-2">
+              <div className="space-y-2 overflow-hidden overflow-x-auto">
                 <input
                   type="text"
                   value={block.properties.videoTitle || ""}
@@ -1985,7 +2061,7 @@ export default function BlockEditor({
           </div>
 
           {/* Add Button */}
-          <div className="absolute -bottom-2 left-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute -bottom-2 left-10 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
             <button
               type="button"
               onClick={(e) => {

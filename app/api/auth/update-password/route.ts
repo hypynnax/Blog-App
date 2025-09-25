@@ -53,10 +53,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error(code);
     // Kullanıcının oturum açmış olduğunu kontrol et
     const {
-      data: { user },
+      data: { user, session },
       error,
     } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -64,19 +63,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Oturum doğrulanamadı: " + (error.message || "Bilinmeyen hata"),
+          error: "Geçersiz veya süresi dolmuş şifre sıfırlama kodu",
         } as AuthResponse,
         { status: 401 }
       );
     }
 
-    if (!user) {
+    if (!user || !session) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Geçersiz oturum veya süresi dolmuş token. Lütfen şifre sıfırlama bağlantısını tekrar kullanın.",
+          error: "Oturum oluşturulamadı",
         } as AuthResponse,
         { status: 401 }
       );
