@@ -23,48 +23,77 @@ function ResetPasswordForm() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // URL hash fragment'larını kontrol et
-        const hashFragment = window.location.hash;
+        // İlk önce Supabase'in auth state change'ini dinle
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log("Auth event:", event, session);
 
-        if (
-          hashFragment.includes("access_token") &&
-          hashFragment.includes("type=recovery")
-        ) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-
-          // Session'ı kontrol et
-          const {
-            data: { user },
-            error,
-          } = await supabase.auth.getUser();
-
-          if (error || !user) {
+          if (event === "PASSWORD_RECOVERY") {
+            setIsValidSession(true);
+            setCheckingSession(false);
+          } else if (session && session.user) {
+            // Session varsa ve recovery işlemi için geldiyse
+            setIsValidSession(true);
+            setCheckingSession(false);
+          } else if (event === "SIGNED_OUT" || !session) {
             setIsValidSession(false);
-            toast.error("Oturum oluşturulamadı. Lütfen yeni bir link isteyin.");
-            router.push("/sifremi-unuttum");
-            return;
+            setCheckingSession(false);
           }
+        });
 
+        // Alternatif olarak, mevcut session'ı kontrol et
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session && session.user) {
           setIsValidSession(true);
-
-          // URL'yi temizle (hash fragment'ları kaldır)
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
         } else {
-          setIsValidSession(false);
-          toast.error(
-            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-          );
-          router.push("/sifremi-unuttum");
+          // Hash fragment'ları manuel kontrol et
+          const hashFragment = window.location.hash;
+
+          if (
+            hashFragment.includes("access_token") ||
+            hashFragment.includes("type=recovery")
+          ) {
+            // Supabase'in işlemesi için biraz bekle
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            const {
+              data: { session: newSession },
+            } = await supabase.auth.getSession();
+
+            if (newSession && newSession.user) {
+              setIsValidSession(true);
+            } else {
+              setIsValidSession(false);
+              toast.error(
+                "Oturum oluşturulamadı. Lütfen yeni bir link isteyin."
+              );
+              router.push("/sifremi-unuttum");
+            }
+          } else {
+            setIsValidSession(false);
+            toast.error(
+              "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+            );
+            router.push("/sifremi-unuttum");
+          }
         }
-      } catch (error) {
-        toast.error("Oturum kontrol edilemedi");
-        router.push("/sifremi-unuttum");
-      } finally {
+
         setCheckingSession(false);
+
+        // Cleanup subscription
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error("Auth callback error:", error);
+        toast.error("Oturum kontrol edilemedi");
+        setIsValidSession(false);
+        setCheckingSession(false);
+        router.push("/sifremi-unuttum");
       }
     };
 
