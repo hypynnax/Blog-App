@@ -9,9 +9,11 @@ export async function POST(request: NextRequest) {
     const {
       password,
       passwordConfirm,
+      code,
     }: {
       password: string;
       passwordConfirm?: string;
+      code: string;
     } = await request.json();
 
     // Validation
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.exchangeCodeForSession(code);
 
     if (userError) {
       return NextResponse.json(

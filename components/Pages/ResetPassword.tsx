@@ -20,13 +20,12 @@ function ResetPasswordForm() {
   const router = useRouter();
   const supabase = createClientComponentClient();
   const searchParams = useSearchParams();
+  const code = searchParams.get("code");
 
   useEffect(() => {
     // URL parametrelerinden session bilgilerini al
     const handleAuthCallback = async () => {
       try {
-        const code = searchParams.get("code");
-
         if (code) {
           setIsValidSession(true);
         } else {
@@ -77,6 +76,8 @@ function ResetPasswordForm() {
         },
         body: JSON.stringify({
           password: formData.password,
+          passwordConfirm: formData.passwordConfirm,
+          code: code,
         }),
       });
 
