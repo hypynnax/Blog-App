@@ -33,19 +33,14 @@ function ResetPasswordForm() {
         }
 
         // URL'den hash veya search params kontrol et
-        const hashParams = new URLSearchParams(
-          window.location.hash.substring(1)
-        );
-        alert(hashParams);
-        const token = hashParams.get("code");
-        const type = hashParams.get("type");
+        const code = searchParams.get("code");
 
-        if (token && type === "recovery") {
+        if (code) {
           // Session'ı manuel olarak set et
           const { data: sessionData, error: sessionError } =
             await supabase.auth.setSession({
-              access_token: token,
-              refresh_token: token,
+              access_token: code,
+              refresh_token: code,
             });
 
           if (sessionError) {
