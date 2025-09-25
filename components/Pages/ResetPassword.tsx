@@ -22,80 +22,52 @@ function ResetPasswordForm() {
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const checkSession = async () => {
       try {
-        // Önce Supabase'in otomatik auth callback'ini dene
-        const { data: authData, error: authError } =
-          await supabase.auth.getSession();
+        // URL'den hata parametresini kontrol et
+        const error = searchParams.get("error");
+        if (error) {
+          console.log("Auth callback error:", error);
+          let errorMessage = "Şifre sıfırlama linki geçersiz.";
 
-        if (authData.session) {
-          console.log("Found existing session:", authData.session.user.id);
-          setIsValidSession(true);
-          setCheckingSession(false);
+          if (error === "invalid_token") {
+            errorMessage = "Geçersiz şifre sıfırlama linki!";
+          } else if (error === "callback_error") {
+            errorMessage = "Oturum işlenirken hata oluştu!";
+          } else if (error === "no_token") {
+            errorMessage = "Şifre sıfırlama token'ı bulunamadı!";
+          }
+
+          toast.error(errorMessage);
+          setTimeout(() => {
+            router.push("/sifremi-unuttum");
+          }, 2000);
           return;
         }
 
-        // URL fragment (#) parametrelerini al - searchParams değil!
-        const hashParams = new URLSearchParams(
-          window.location.hash.substring(1)
-        );
-        const token = hashParams.get("token");
-        const type = hashParams.get("type");
+        // Session'ı kontrol et
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-        // Ayrıca query parametrelerini de kontrol et
-        const queryToken = searchParams.get("token");
-        const queryType = searchParams.get("type");
+        console.log("Session check:", {
+          hasSession: !!session,
+          error: sessionError,
+        });
 
-        console.log("Hash Parameters:", { token, type });
-        console.log("Query Parameters:", { queryToken, queryType });
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          toast.error("Oturum hatası!");
+          router.push("/sifremi-unuttum");
+          return;
+        }
 
-        // Hash veya query parametrelerinden birini kullan
-        const finalToken = token || queryToken;
-        const finalType = type || queryType;
-
-        if (finalToken && finalType === "recovery") {
-          console.log("Processing recovery token...", finalToken);
-
-          // PKCE token'ı verify et
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: finalToken,
-            type: "recovery",
-          });
-
-          console.log("Verify OTP result:", { data, error });
-
-          if (error) {
-            console.error("Token verification error:", error);
-            toast.error("Geçersiz şifre sıfırlama linki!");
-            router.push("/sifremi-unuttum");
-            return;
-          }
-
-          if (data.session) {
-            console.log("Session established successfully");
-            setIsValidSession(true);
-
-            // URL'yi temizle
-            window.history.replaceState({}, document.title, "/sifre-sifirla");
-          } else if (data.user) {
-            // Bazen session hemen oluşmayabilir, user varsa bekle
-            console.log("User found, waiting for session...");
-            setTimeout(() => {
-              setIsValidSession(true);
-            }, 1000);
-          }
+        if (session) {
+          console.log("Valid session found for user:", session.user.id);
+          setIsValidSession(true);
         } else {
-          // Token yok, mevcut session'ı kontrol et
-          console.log("No token found, checking existing session...");
-
-          if (authError) {
-            console.error("Session error:", authError);
-            toast.error("Oturum hatası!");
-            router.push("/sifremi-unuttum");
-            return;
-          }
-
-          console.log("No valid session or token");
+          console.log("No valid session found");
           toast.error(
             "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
           );
@@ -103,15 +75,15 @@ function ResetPasswordForm() {
           return;
         }
       } catch (error) {
-        console.error("Auth callback error:", error);
-        toast.error("Oturum işlenirken hata oluştu");
+        console.error("Session check error:", error);
+        toast.error("Oturum kontrol edilemedi");
         router.push("/sifremi-unuttum");
       } finally {
         setCheckingSession(false);
       }
     };
 
-    handleAuthCallback();
+    checkSession();
 
     // Auth state değişikliklerini dinle
     const {
@@ -119,7 +91,7 @@ function ResetPasswordForm() {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change:", event, session?.user?.id);
 
-      if (event === "TOKEN_REFRESHED" && session) {
+      if (event === "SIGNED_IN" && session) {
         setIsValidSession(true);
         setCheckingSession(false);
       } else if (event === "SIGNED_OUT") {
