@@ -23,81 +23,88 @@ function ResetPasswordForm() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // İlk önce Supabase'in auth state change'ini dinle
-        const {
-          data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log("Auth event:", event, session);
+        // Hash fragment'ları kontrol et
+        const hashFragment = window.location.hash;
+        console.log("Hash fragment:", hashFragment);
 
-          if (event === "PASSWORD_RECOVERY") {
-            setIsValidSession(true);
-            setCheckingSession(false);
-          } else if (session && session.user) {
-            // Session varsa ve recovery işlemi için geldiyse
-            setIsValidSession(true);
-            setCheckingSession(false);
-          } else if (event === "SIGNED_OUT" || !session) {
-            setIsValidSession(false);
-            setCheckingSession(false);
-          }
-        });
+        if (
+          hashFragment.includes("access_token") &&
+          hashFragment.includes("type=recovery")
+        ) {
+          console.log(
+            "Recovery hash found, waiting for Supabase to process..."
+          );
 
-        // Alternatif olarak, mevcut session'ı kontrol et
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+          // Supabase'in hash'i işlemesi için bekle
+          let attempts = 0;
+          const maxAttempts = 10;
 
-        if (session && session.user) {
-          setIsValidSession(true);
-        } else {
-          // Hash fragment'ları manuel kontrol et
-          const hashFragment = window.location.hash;
-
-          if (
-            hashFragment.includes("access_token") ||
-            hashFragment.includes("type=recovery")
-          ) {
-            // Supabase'in işlemesi için biraz bekle
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+          while (attempts < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
             const {
-              data: { session: newSession },
+              data: { session },
             } = await supabase.auth.getSession();
+            console.log(`Attempt ${attempts + 1}:`, session);
 
-            if (newSession && newSession.user) {
+            if (session && session.user) {
               setIsValidSession(true);
-            } else {
-              setIsValidSession(false);
-              toast.error(
-                "Oturum oluşturulamadı. Lütfen yeni bir link isteyin."
+              setCheckingSession(false);
+
+              // URL'yi temizle
+              window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname
               );
-              router.push("/sifremi-unuttum");
+              return;
             }
-          } else {
-            setIsValidSession(false);
-            toast.error(
-              "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-            );
-            router.push("/sifremi-unuttum");
+
+            attempts++;
           }
+
+          // Tüm denemeler başarısız olursa
+          console.log("Session could not be established after all attempts");
+          setIsValidSession(false);
+          toast.error("Oturum oluşturulamadı. Lütfen yeni bir link isteyin.");
+          router.push("/sifremi-unuttum");
+        } else {
+          console.log("No recovery hash found");
+          setIsValidSession(false);
+          toast.error(
+            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+          );
+          router.push("/sifremi-unuttum");
         }
-
-        setCheckingSession(false);
-
-        // Cleanup subscription
-        return () => {
-          subscription.unsubscribe();
-        };
       } catch (error) {
         console.error("Auth callback error:", error);
         toast.error("Oturum kontrol edilemedi");
         setIsValidSession(false);
-        setCheckingSession(false);
         router.push("/sifremi-unuttum");
+      } finally {
+        setCheckingSession(false);
       }
     };
 
+    // Auth state değişikliklerini dinle
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+
+      if (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
+        if (session && session.user) {
+          setIsValidSession(true);
+          setCheckingSession(false);
+        }
+      }
+    });
+
     handleAuthCallback();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router, supabase]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
