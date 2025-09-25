@@ -53,18 +53,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.error(code);
     // Kullanıcının oturum açmış olduğunu kontrol et
     const {
       data: { user },
-      error: userError,
+      error,
     } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (userError) {
+    if (error) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Oturum doğrulanamadı: " + (userError.message || "Bilinmeyen hata"),
+            "Oturum doğrulanamadı: " + (error.message || "Bilinmeyen hata"),
         } as AuthResponse,
         { status: 401 }
       );
