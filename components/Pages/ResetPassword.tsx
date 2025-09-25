@@ -36,6 +36,7 @@ function ResetPasswordForm() {
         const hashParams = new URLSearchParams(
           window.location.hash.substring(1)
         );
+        alert(hashParams);
         const token = hashParams.get("code");
         const type = hashParams.get("type");
 
