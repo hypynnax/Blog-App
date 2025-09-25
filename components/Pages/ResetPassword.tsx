@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -19,32 +19,46 @@ function ResetPasswordForm() {
 
   const router = useRouter();
   const supabase = createClientComponentClient();
-  const searchParams = useSearchParams();
-  const code = searchParams.get("code");
 
   useEffect(() => {
-    // URL parametrelerinden session bilgilerini al
     const handleAuthCallback = async () => {
       try {
-        if (code) {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(
-            code
-          );
+        // URL hash fragment'larını kontrol et
+        const hashFragment = window.location.hash;
 
-          if (error || !data.user) {
+        if (
+          hashFragment.includes("access_token") &&
+          hashFragment.includes("type=recovery")
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // Session'ı kontrol et
+          const {
+            data: { user },
+            error,
+          } = await supabase.auth.getUser();
+
+          if (error || !user) {
             setIsValidSession(false);
-            toast.error(
-              "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-            );
+            toast.error("Oturum oluşturulamadı. Lütfen yeni bir link isteyin.");
             router.push("/sifremi-unuttum");
             return;
           }
 
           setIsValidSession(true);
+
+          // URL'yi temizle (hash fragment'ları kaldır)
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
         } else {
           setIsValidSession(false);
+          toast.error(
+            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+          );
           router.push("/sifremi-unuttum");
-          return;
         }
       } catch (error) {
         toast.error("Oturum kontrol edilemedi");
