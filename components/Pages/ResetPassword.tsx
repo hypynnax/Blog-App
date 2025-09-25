@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -19,7 +19,6 @@ function ResetPasswordForm() {
 
   const router = useRouter();
   const supabase = createClientComponentClient();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     // URL parametrelerinden session bilgilerini al
@@ -31,46 +30,18 @@ function ResetPasswordForm() {
           toast.error("Oturum hatası");
         }
 
-        // URL'den hash veya search params kontrol et
-        const accessToken = searchParams.get("access_token");
-        const refreshToken = searchParams.get("refresh_token");
-        const type = searchParams.get("type");
-        alert(searchParams);
-
-        if (accessToken && refreshToken && type === "recovery") {
-          // Session'ı manuel olarak set et
-          const { data: sessionData, error: sessionError } =
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-
-          if (sessionError) {
-            toast.error("Session oluşturulurken hata oluştu");
-            router.push("/sifremi-unuttum");
-            return;
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === "PASSWORD_RECOVERY") {
+            if (!session) {
+              // Geçersiz session
+              toast.error(
+                "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
+              );
+              router.push("/sifremi-unuttum");
+              return;
+            }
           }
-
-          if (sessionData.session) {
-            setIsValidSession(true);
-            // URL'yi temizle
-            window.history.replaceState(
-              {},
-              document.title,
-              window.location.pathname
-            );
-          }
-        } else if (data.session) {
-          // Zaten aktif session var
-          setIsValidSession(true);
-        } else {
-          // Geçersiz session
-          toast.error(
-            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-          );
-          router.push("/sifremi-unuttum");
-          return;
-        }
+        });
       } catch (error) {
         toast.error("Oturum kontrol edilemedi");
         router.push("/sifremi-unuttum");
