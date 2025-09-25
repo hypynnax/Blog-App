@@ -35,16 +35,15 @@ function ResetPasswordForm() {
         const hashParams = new URLSearchParams(
           window.location.hash.substring(1)
         );
-        const accessToken = hashParams.get("access_token");
-        const refreshToken = hashParams.get("refresh_token");
+        const token = hashParams.get("token");
         const type = hashParams.get("type");
 
-        if (accessToken && refreshToken && type === "recovery") {
+        if (token && type === "recovery") {
           // Session'ı manuel olarak set et
           const { data: sessionData, error: sessionError } =
             await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
+              access_token: token,
+              refresh_token: token,
             });
 
           if (sessionError) {
