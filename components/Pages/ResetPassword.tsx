@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -19,18 +19,15 @@ function ResetPasswordForm() {
 
   const router = useRouter();
   const supabase = createClientComponentClient();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // URL parametrelerinden session bilgilerini al
     const handleAuthCallback = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const code = searchParams.get("code");
 
-        if (error) {
-          toast.error("Oturum hatası");
-        }
-
-        if (data.session) {
+        if (code) {
           setIsValidSession(true);
         } else {
           // Geçersiz session
