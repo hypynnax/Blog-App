@@ -83,7 +83,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (sessionError || !sessionData.properties?.action_link) {
-      console.error("Session generation error:", sessionError);
       return NextResponse.json(
         { success: false, error: "Session oluşturulamadı" } as AuthResponse,
         { status: 500 }
@@ -98,14 +97,10 @@ export async function POST(request: NextRequest) {
 
     if (accessToken && refreshToken) {
       // Session'ı set et
-      const { error: setSessionError } = await supabase.auth.setSession({
+      await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
       });
-
-      if (setSessionError) {
-        console.error("Set session error:", setSessionError);
-      }
     }
 
     // Token'ın son kullanım tarihini güncelle
@@ -137,7 +132,6 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("Check remember token error:", error);
     return NextResponse.json(
       { success: false, error: "Token kontrol hatası" } as AuthResponse,
       { status: 500 }

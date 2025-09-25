@@ -56,7 +56,6 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("User posts fetch error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

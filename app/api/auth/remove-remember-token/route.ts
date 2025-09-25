@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
       message: "Remember token silindi",
     } as AuthResponse);
   } catch (error) {
-    console.error("Remove remember token error:", error);
     return NextResponse.json(
       { success: false, error: "Token silme hatası" } as AuthResponse,
       { status: 500 }

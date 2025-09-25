@@ -10,6 +10,7 @@ import {
   xSocialIcon,
 } from "@/icons/icon";
 import { Category } from "@/types/category";
+import toast from "react-hot-toast";
 
 export default function Footer() {
   const [page, setPage] = useState({
@@ -44,7 +45,7 @@ export default function Footer() {
         setCategories(limitedCategories);
       }
     } catch (error) {
-      console.error("Categories error:", error);
+      toast.error("Kategoriler çekilirken hata oluştu!");
     }
   };
 

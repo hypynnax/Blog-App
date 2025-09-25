@@ -48,13 +48,18 @@ export default function BlogDetail({ id }: BlogDetailProps) {
       const data = await response.json();
       setComments(data.data.comments);
     } catch (err) {
-      console.error(err);
+      toast.error("Yorumlar alınırken hata oluştu!");
     }
   }
 
   const handleCommentSubmit = async (newComment: string) => {
     if (!user) {
-      alert("Yorum yapabilmek için giriş yapmalısınız.");
+      toast((t) => (
+        <span>
+          Yorum yapabilmek için giriş yapmalısınız.
+          <button onClick={() => toast.dismiss(t.id)}>Tamam</button>
+        </span>
+      ));
       return;
     }
 
@@ -136,7 +141,7 @@ export default function BlogDetail({ id }: BlogDetailProps) {
           )}
 
           <div className="p-8">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 mb-4">
               <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
                 {post?.category}
               </span>

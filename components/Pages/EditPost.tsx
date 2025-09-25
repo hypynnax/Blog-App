@@ -146,12 +146,12 @@ export default function EditPost({ postId }: { postId: string }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Yazıyı Düzenle</h1>
           <button
             onClick={handleDelete}
             disabled={isLoading}
-            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition disabled:opacity-50 cursor-pointer"
+            className="w-full md:w-auto bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition disabled:opacity-50 cursor-pointer"
           >
             Yazıyı Sil
           </button>
@@ -251,8 +251,8 @@ export default function EditPost({ postId }: { postId: string }) {
 
           {/* Actions */}
           <div className="bg-white rounded-md shadow-md p-6">
-            <div className="flex justify-between items-center">
-              <div>
+            <div className="flex flex-wrap justify-between items-center gap-4">
+              <div className="flex md:flex-col items-center md:items-start gap-2 md:gap-0">
                 <label className="block text-sm font-medium mb-2">Durum</label>
                 <select
                   name="status"
@@ -266,19 +266,19 @@ export default function EditPost({ postId }: { postId: string }) {
                 </select>
               </div>
 
-              <div className="flex gap-4">
+              <div className="w-full md:w-auto flex flex-wrap gap-4">
                 <button
                   type="button"
                   onClick={() => router.back()}
                   disabled={isLoading}
-                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition cursor-pointer"
+                  className="w-full md:w-auto px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition cursor-pointer"
                 >
                   İptal
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
+                  className="w-full md:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
                 >
                   {isLoading ? "Güncelleniyor..." : "Güncelle"}
                 </button>

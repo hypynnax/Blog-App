@@ -57,7 +57,6 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("User comments fetch error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

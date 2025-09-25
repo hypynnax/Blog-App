@@ -2122,32 +2122,33 @@ export default function BlockEditor({
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setIsPreview(false)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              !isPreview
-                ? "bg-gray-900 text-white"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
-            }`}
-          >
-            <Edit3 size={14} className="inline mr-2" /> Düzenle
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsPreview(true)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              isPreview
-                ? "bg-gray-900 text-white"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
-            }`}
-          >
-            <Eye size={14} className="inline mr-2" /> Önizle
-          </button>
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <div className="flex justify-between items-center">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setIsPreview(false)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                !isPreview
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+              }`}
+            >
+              <Edit3 size={14} className="inline mr-2" /> Düzenle
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsPreview(true)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                isPreview
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+              }`}
+            >
+              <Eye size={14} className="inline mr-2" /> Önizle
+            </button>
+          </div>
         </div>
-
         <div className="text-sm text-gray-500">{blocks.length} blok</div>
       </div>
 

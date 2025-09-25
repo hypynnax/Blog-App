@@ -71,7 +71,6 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("Get category posts error:", error);
     return NextResponse.json(
       { error: "Kategori yazıları getirilirken hata oluştu" },
       { status: 500 }

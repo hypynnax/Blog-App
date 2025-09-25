@@ -55,7 +55,7 @@ export default function Dashboard() {
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="animate-pulse space-y-8">
             <div className="h-8 bg-gray-200 rounded w-48"></div>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="bg-white p-6 rounded-md shadow-md">
                   <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -108,7 +108,7 @@ export default function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-md shadow-md p-6">
+          <div className="text-center md:text-start bg-white rounded-md shadow-md p-6">
             <h3 className="text-lg font-medium text-gray-700 mb-2">
               Toplam Yazı
             </h3>
@@ -116,7 +116,7 @@ export default function Dashboard() {
               {user?._count?.posts}
             </p>
           </div>
-          <div className="bg-white rounded-md shadow-md p-6">
+          <div className="text-center md:text-start bg-white rounded-md shadow-md p-6">
             <h3 className="text-lg font-medium text-gray-700 mb-2">
               Toplam Yorum
             </h3>
@@ -124,7 +124,7 @@ export default function Dashboard() {
               {user?._count?.comments}
             </p>
           </div>
-          <div className="bg-white rounded-md shadow-md p-6">
+          <div className="text-center md:text-start bg-white rounded-md shadow-md p-6">
             <h3 className="text-lg font-medium text-gray-700 mb-2">
               Toplam Görüntülenme
             </h3>
@@ -142,13 +142,13 @@ export default function Dashboard() {
           <div className="flex flex-wrap gap-4">
             <Link
               href="/yazi-olustur"
-              className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
+              className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
             >
               Yeni Yazı Oluştur
             </Link>
             <Link
               href="/profil"
-              className="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700 transition"
+              className="w-full md:w-auto bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700 transition"
             >
               Profili Düzenle
             </Link>
@@ -177,8 +177,8 @@ export default function Dashboard() {
                   className="flex justify-between items-center p-4 border rounded-md"
                 >
                   <div>
-                    <h3 className="font-medium">{post.title}</h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-medium">{post.title}</h3>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           post.status === "PUBLISHED"
@@ -188,7 +188,8 @@ export default function Dashboard() {
                       >
                         {post.status === "PUBLISHED" ? "Yayında" : "Taslak"}
                       </span>
-                      <span>•</span>
+                    </div>
+                    <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
                       <span>
                         {post.viewCount && post.viewCount != 0
                           ? post.viewCount / 2

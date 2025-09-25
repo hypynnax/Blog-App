@@ -85,7 +85,6 @@ export default function Profile() {
         toast.error("Yazılar yüklenemedi");
       }
     } catch (error) {
-      console.error("Error fetching user posts:", error);
       toast.error("Yazılar yüklenirken hata oluştu");
     } finally {
       setPostsLoading(false);
@@ -106,7 +105,6 @@ export default function Profile() {
         toast.error("Yorumlar yüklenemedi");
       }
     } catch (error) {
-      console.error("Error fetching user comments:", error);
       toast.error("Yorumlar yüklenirken hata oluştu");
     } finally {
       setCommentsLoading(false);
@@ -153,7 +151,6 @@ export default function Profile() {
         return null;
       }
     } catch (error) {
-      console.error("Image upload error:", error);
       toast.error("Resim yüklenirken hata oluştu");
       return null;
     } finally {
@@ -184,7 +181,6 @@ export default function Profile() {
         toast.error(result.error || "Resim silinirken hata oluştu");
       }
     } catch (error) {
-      console.error("Image delete error:", error);
       toast.error("Resim silinirken hata oluştu");
     }
   };
@@ -240,7 +236,6 @@ export default function Profile() {
         toast.error(result.error || "Profil güncellenirken hata oluştu");
       }
     } catch (error) {
-      console.error("Profile update error:", error);
       toast.error("Profil güncellenirken hata oluştu");
     } finally {
       setLoading(false);
@@ -301,7 +296,7 @@ export default function Profile() {
       toast.success("Yorum başarıyla güncellendi!");
       fetchUserComments();
     } catch (err) {
-      console.error(err);
+      toast.error("Yorum güncellenirken hata oluştu!");
     }
   }
 
@@ -322,7 +317,7 @@ export default function Profile() {
       fetchUserComments();
       refreshUser();
     } catch (err) {
-      console.error(err);
+      toast.error("Yorum silinirken hata oluştu!");
     }
   }
 
@@ -649,12 +644,12 @@ export default function Profile() {
                     {userComments.map((comment) => (
                       <div
                         key={comment.id}
-                        className="flex justify-between items-center bg-gray-50 rounded-md p-2"
+                        className="flex flex-wrap md:flex-nowrap justify-between items-center bg-gray-50 rounded-md p-2"
                       >
                         <CommentCard key={comment.id} {...comment} />
-                        <div className="flex flex-col justify-end items-center gap-2 mr-2">
+                        <div className="w-full md:w-auto flex md:flex-col justify-end items-center gap-2 mr-2">
                           <button
-                            className="w-full bg-green-500 font-bold text-white cursor-pointer p-2"
+                            className="w-1/2 md:w-full bg-green-500 font-bold text-white cursor-pointer p-2"
                             onClick={() =>
                               updateComment(comment.id, comment.content)
                             }
@@ -662,7 +657,7 @@ export default function Profile() {
                             Düzenle
                           </button>
                           <button
-                            className="w-full bg-red-500 font-bold text-white cursor-pointer p-2"
+                            className="w-1/2 md:w-full bg-red-500 font-bold text-white cursor-pointer p-2"
                             onClick={() => deleteComment(comment.id)}
                           >
                             Sil

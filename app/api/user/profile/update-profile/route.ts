@@ -142,7 +142,6 @@ export async function PUT(request: NextRequest) {
       },
     } as AuthResponse);
   } catch (error) {
-    console.error("Update profile error:", error);
     return NextResponse.json(
       {
         success: false,

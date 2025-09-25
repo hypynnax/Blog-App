@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error("Reset password error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -45,7 +44,6 @@ export async function POST(request: NextRequest) {
       message: "Şifre sıfırlama linki email adresinize gönderildi",
     } as AuthResponse);
   } catch (error) {
-    console.error("Reset password error:", error);
     return NextResponse.json(
       {
         success: false,

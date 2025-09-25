@@ -48,11 +48,11 @@ export default function UserPostsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Yazılarım</h1>
           <Link
             href="/yazi-olustur"
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
+            className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition"
           >
             Yeni Yazı Oluştur
           </Link>
@@ -60,10 +60,10 @@ export default function UserPostsPage() {
 
         {/* Filter Tabs */}
         <div className="bg-white rounded-md shadow-md p-6 mb-8">
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <button
               onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-md font-medium transition ${
+              className={`w-full md:w-auto px-4 py-2 rounded-md font-medium transition ${
                 filter === "all"
                   ? "bg-blue-600 text-white"
                   : "text-gray-600 hover:bg-gray-100 cursor-pointer"
@@ -73,7 +73,7 @@ export default function UserPostsPage() {
             </button>
             <button
               onClick={() => setFilter("PUBLISHED")}
-              className={`px-4 py-2 rounded-md font-medium transition ${
+              className={`w-full md:w-auto px-4 py-2 rounded-md font-medium transition ${
                 filter === "PUBLISHED"
                   ? "bg-green-600 text-white"
                   : "text-gray-600 hover:bg-gray-100 cursor-pointer"
@@ -84,7 +84,7 @@ export default function UserPostsPage() {
             </button>
             <button
               onClick={() => setFilter("DRAFT")}
-              className={`px-4 py-2 rounded-md font-medium transition ${
+              className={`w-full md:w-auto px-4 py-2 rounded-md font-medium transition ${
                 filter === "DRAFT"
                   ? "bg-yellow-600 text-white"
                   : "text-gray-600 hover:bg-gray-100 cursor-pointer"

@@ -37,7 +37,6 @@ export default function ProfileDetail({ username }: { username: string }) {
         toast.error("Kullanıcı yüklenemedi");
       }
     } catch (error) {
-      console.error("Error fetching user:", error);
       toast.error("Kullanıcı yüklenirken hata oluştu");
     } finally {
       setLoading(false);
@@ -59,7 +58,6 @@ export default function ProfileDetail({ username }: { username: string }) {
         }
       }
     } catch (error) {
-      console.error("Error fetching user posts:", error);
       toast.error("Yazılar yüklenirken hata oluştu");
     } finally {
       setPostsLoading(false);

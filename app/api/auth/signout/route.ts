@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error("Signout error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -48,7 +47,6 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("Signout error:", error);
     return NextResponse.json(
       {
         success: false,

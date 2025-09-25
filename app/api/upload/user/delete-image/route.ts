@@ -10,7 +10,6 @@ export async function DELETE(request: NextRequest) {
     try {
       storageClient = getStorageClient();
     } catch (error) {
-      console.error("Storage client error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -57,15 +56,12 @@ export async function DELETE(request: NextRequest) {
         .map((file) => `users/${supabaseUser.id}/${file.name}`);
 
       if (filesToDelete.length > 0) {
-        console.log("Deleting files:", filesToDelete);
-
         // Storage client ile sil
         const { error } = await storageClient.storage
           .from("user-images")
           .remove(filesToDelete);
 
         if (error) {
-          console.error("Supabase delete error:", error);
           if (!error.message.includes("not found")) {
             return NextResponse.json(
               { success: false, error: "Failed to delete image" },
@@ -92,7 +88,6 @@ export async function DELETE(request: NextRequest) {
       } image deleted successfully`,
     });
   } catch (error) {
-    console.error("Delete image error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

@@ -136,7 +136,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      console.error("Initialize auth error:", error);
       setLoading(false);
     }
   }
@@ -151,7 +150,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     } catch (error) {
-      console.error("Error fetching user:", error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -184,7 +182,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
     } catch (error) {
-      console.error("Check remembered user error:", error);
       rememberMeUtils.clearRememberMe();
       return false;
     }
@@ -201,8 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json();
       return result;
     } catch (error) {
-      console.error("Signup error:", error);
-      return { success: false, error: "Bir hata oluştu" };
+      return { success: false, error: "Kayıt sırasında bir hata oluştu" };
     }
   };
 
@@ -245,8 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return result;
     } catch (error) {
-      console.error("Signin error:", error);
-      return { success: false, error: "Bir hata oluştu" };
+      return { success: false, error: "Giriş sırasında bir hata oluştu" };
     }
   };
 
@@ -267,9 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       rememberMeUtils.clearRememberMe();
       setUser(null);
       router.push("/auth/signin");
-    } catch (error) {
-      console.error("Signout error:", error);
-    }
+    } catch (error) {}
   };
 
   const resetPassword = async (data: ResetPasswordData) => {
@@ -283,8 +276,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json();
       return result;
     } catch (error) {
-      console.error("Reset password error:", error);
-      return { success: false, error: "Bir hata oluştu" };
+      return {
+        success: false,
+        error: "Şifre sıfırlama sırasında bir hata oluştu",
+      };
     }
   };
 
@@ -299,8 +294,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json();
       return result;
     } catch (error) {
-      console.error("Update password error:", error);
-      return { success: false, error: "Bir hata oluştu" };
+      return {
+        success: false,
+        error: "Şifre güncelleme sırasında bir hata oluştu",
+      };
     }
   };
 

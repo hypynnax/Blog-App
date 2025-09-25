@@ -120,7 +120,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (authError) {
-      console.error("Supabase auth error:", authError);
       return NextResponse.json(
         {
           success: false,
@@ -173,7 +172,6 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("Signup error:", error);
     return NextResponse.json(
       {
         success: false,

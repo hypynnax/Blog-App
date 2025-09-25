@@ -41,7 +41,6 @@ export default function HomePage() {
       const data = await response.json();
       setBlogs(data.posts);
     } catch (error) {
-      console.error("Fetch blogs error:", error);
       setError("Blog yazıları yüklenirken hata oluştu");
       toast.error("Blog yazıları yüklenemedi");
     } finally {
@@ -62,7 +61,7 @@ export default function HomePage() {
         setCategories(limitedCategories);
       }
     } catch (error) {
-      console.error("Fetch categories error:", error);
+      toast.error("Blog kategorileri yüklenemedi");
     }
   };
 
@@ -114,13 +113,13 @@ export default function HomePage() {
       <section className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="text-center">
-            <div className="flex justify-center items-center gap-2 mb-4">
+            <div className="flex flex-wrap justify-center items-center gap-2 mb-4">
               {categories.length != 0 && (
                 <TypewriterText texts={categories.map((cat) => cat.name)} />
               )}
               <h1 className="text-4xl font-bold text-gray-800">Blogu</h1>
             </div>
-            <div className="max-w-2xl mx-auto flex justify-center items-center gap-2">
+            <div className="max-w-2xl mx-auto flex flex-wrap justify-center items-center gap-2">
               <p className="text-xl text-gray-600">
                 Merak ettiğiniz tüm konular hakkında güncel yazıları
               </p>
@@ -135,7 +134,7 @@ export default function HomePage() {
       <main className="max-w-6xl mx-auto px-6 py-8">
         <SearchBar onSearch={handleSearch} placeholder="Yazılarda ara..." />
 
-        <div className="flex justify-center items-center gap-2">
+        <div className="flex justify-center items-start gap-2">
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}

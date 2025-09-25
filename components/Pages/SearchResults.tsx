@@ -6,6 +6,7 @@ import SearchBar from "@/components/Parts/SearchBar";
 import Pagination from "@/components/Parts/Pagination";
 import { BlogCardProps } from "@/types/post";
 import { UserCardProps } from "@/types/auth";
+import toast from "react-hot-toast";
 
 interface SearchResultsProps {
   initialQuery?: string;
@@ -31,7 +32,7 @@ export default function SearchResults({
         setCurrentPage(1);
       }
     } catch (error) {
-      console.error("Results error:", error);
+      toast.error("Arama sonucu çekilirken hata oluştu!");
     }
   };
 

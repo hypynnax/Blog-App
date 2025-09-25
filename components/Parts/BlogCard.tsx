@@ -95,7 +95,7 @@ export default function BlogCard({
         <p className="h-5 text-gray-600 mb-4">{truncateText(excerpt, 45)}</p>
 
         {/* Footer */}
-        <div className="flex justify-between items-center py-4 border-t border-gray-100">
+        <div className="flex flex-wrap justify-between items-center py-4 border-t border-gray-100">
           <div className="text-sm text-gray-500">
             <span>By {author.username}</span>
             <span className="mx-2">•</span>

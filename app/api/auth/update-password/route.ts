@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (userError) {
-      console.error("User auth error:", userError);
       return NextResponse.json(
         {
           success: false,
@@ -86,8 +85,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (updateError) {
-      console.error("Update password error:", updateError);
-
       // Hata türüne göre mesaj ver
       let errorMessage = "Şifre güncellenemedi";
 
@@ -111,9 +108,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Başarılı güncelleme logla
-    console.log(`Password updated successfully for user: ${user.id}`);
-
     return NextResponse.json({
       success: true,
       message: "Şifre başarıyla güncellendi",
@@ -124,8 +118,6 @@ export async function POST(request: NextRequest) {
       },
     } as AuthResponse);
   } catch (error) {
-    console.error("Update password API error:", error);
-
     return NextResponse.json(
       {
         success: false,

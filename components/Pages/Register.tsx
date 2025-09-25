@@ -107,7 +107,6 @@ export default function Register() {
         toast.error(result.error || "Kayıt başarısız");
       }
     } catch (error) {
-      console.error("Register error:", error);
       toast.error("Kayıt sırasında beklenmeyen bir hata oluştu");
     } finally {
       setIsLoading(false);

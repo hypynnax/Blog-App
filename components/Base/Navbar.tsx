@@ -23,7 +23,6 @@ export default function Navbar() {
       toast.success("Çıkış yapıldı");
       router.push("/");
     } catch (error) {
-      console.error("Logout error:", error);
       toast.error("Çıkış yapılırken hata oluştu");
     }
   };

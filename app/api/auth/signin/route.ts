@@ -55,8 +55,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (authError) {
-      console.error("Supabase auth error:", authError);
-
       // Hata mesajlarını kullanıcı dostu hale getir
       let errorMessage = "Giriş sırasında bir hata oluştu";
 
@@ -101,7 +99,6 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("Signin error:", error);
     return NextResponse.json(
       {
         success: false,

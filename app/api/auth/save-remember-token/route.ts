@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
       },
     } as AuthResponse);
   } catch (error) {
-    console.error("Save remember token error:", error);
     return NextResponse.json(
       { success: false, error: "Token kaydetme hatası" } as AuthResponse,
       { status: 500 }

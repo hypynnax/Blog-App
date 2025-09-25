@@ -97,7 +97,6 @@ export default function Login() {
         toast.error(result.error || "Giriş başarısız");
       }
     } catch (error) {
-      console.error("Login error:", error);
       toast.error("Giriş sırasında beklenmeyen bir hata oluştu");
     } finally {
       setIsLoading(false);

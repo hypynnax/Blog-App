@@ -4,15 +4,12 @@ import { getStorageClient } from "@/lib/supabase";
 import { createAuthClientFromRequest } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
-  console.log("Upload API called");
-
   try {
     // Service key kontrolü
     let storageClient;
     try {
       storageClient = getStorageClient();
     } catch (error) {
-      console.error("Storage client error:", error);
       return NextResponse.json(
         {
           success: false,
@@ -30,14 +27,8 @@ export async function POST(request: NextRequest) {
       error: userError,
     } = await supabase.auth.getUser();
 
-    console.log("User auth check:", {
-      userId: supabaseUser?.id,
-      error: userError?.message,
-    });
-
     // Auth kontrolü
     if (userError || !supabaseUser) {
-      console.log("Auth failed");
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
@@ -47,13 +38,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const image = formData.get("image") as File;
     const type = formData.get("type") as string;
-
-    console.log("Form data:", {
-      hasImage: !!image,
-      imageSize: image?.size,
-      imageType: image?.type,
-      type,
-    });
 
     if (!image) {
       return NextResponse.json(
@@ -93,21 +77,14 @@ export async function POST(request: NextRequest) {
         : `bg_image.${fileExtension}`;
     const filePath = `users/${supabaseUser.id}/${fileName}`;
 
-    console.log("Upload attempt:", { fileName, filePath });
-
     // Dosyayı ArrayBuffer'a çevir
     const arrayBuffer = await image.arrayBuffer();
 
     // Storage işlemleri için Admin client kullan
     const { data: buckets, error: bucketError } =
       await storageClient.storage.listBuckets();
-    console.log(
-      "Available buckets:",
-      buckets?.map((b) => b.name)
-    );
 
     if (bucketError) {
-      console.error("Bucket list error:", bucketError);
       return NextResponse.json(
         { success: false, error: "Storage not configured properly" },
         { status: 500 }
@@ -118,7 +95,6 @@ export async function POST(request: NextRequest) {
       (bucket) => bucket.name === "user-images"
     );
     if (!hasUserImagesBucket) {
-      console.error("user-images bucket not found");
       return NextResponse.json(
         {
           success: false,
@@ -142,13 +118,10 @@ export async function POST(request: NextRequest) {
           .map((file) => `users/${supabaseUser.id}/${file.name}`);
 
         if (filesToDelete.length > 0) {
-          console.log("Deleting old files:", filesToDelete);
           await storageClient.storage.from("user-images").remove(filesToDelete);
         }
       }
-    } catch (removeErr) {
-      console.warn("Remove old file failed:", removeErr);
-    }
+    } catch (removeErr) {}
 
     // Supabase'e yükle - Admin client ile
     const { data: uploadData, error: uploadError } = await storageClient.storage
@@ -158,14 +131,7 @@ export async function POST(request: NextRequest) {
         upsert: true,
       });
 
-    console.log("Upload result:", {
-      success: !uploadError,
-      data: uploadData,
-      error: uploadError,
-    });
-
     if (uploadError) {
-      console.error("Supabase upload error:", uploadError);
       return NextResponse.json(
         {
           success: false,
@@ -181,20 +147,14 @@ export async function POST(request: NextRequest) {
       data: { publicUrl },
     } = storageClient.storage.from("user-images").getPublicUrl(filePath);
 
-    console.log("Public URL generated:", publicUrl);
-
     // Veritabanında kullanıcı bilgilerini güncelle
     const updateData =
       type === "profile" ? { avatar: publicUrl } : { bgImage: publicUrl };
-
-    console.log("Updating database with:", updateData);
 
     const updatedUser = await prisma.user.update({
       where: { id: supabaseUser.id },
       data: updateData,
     });
-
-    console.log("Database updated successfully");
 
     return NextResponse.json({
       success: true,
@@ -204,7 +164,6 @@ export async function POST(request: NextRequest) {
       } image uploaded successfully`,
     });
   } catch (error) {
-    console.error("Upload image error:", error);
     return NextResponse.json(
       {
         success: false,

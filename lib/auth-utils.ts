@@ -66,7 +66,6 @@ export async function getCurrentUser() {
 
     return user;
   } catch (error) {
-    console.error("Error getting current user:", error);
     return null;
   }
 }
@@ -95,7 +94,6 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
 
     return user;
   } catch (error) {
-    console.error("Error getting current user from request:", error);
     return null;
   }
 }
@@ -152,7 +150,6 @@ export async function isUsernameAvailable(
 
     return false;
   } catch (error) {
-    console.error("Error checking username availability:", error);
     return false;
   }
 }
@@ -172,7 +169,6 @@ export async function isEmailAvailable(
 
     return false;
   } catch (error) {
-    console.error("Error checking email availability:", error);
     return false;
   }
 }
@@ -201,7 +197,6 @@ export async function syncUserToDatabase(
 
     return user;
   } catch (error) {
-    console.error("Error syncing user to database:", error);
     throw error;
   }
 }
@@ -215,7 +210,6 @@ export async function isAdmin(userId: string): Promise<boolean> {
 
     return user?.role === "ADMIN";
   } catch (error) {
-    console.error("Error checking admin status:", error);
     return false;
   }
 }
@@ -230,7 +224,6 @@ export async function findUserByEmailOrUsername(emailOrUsername: string) {
 
     return user;
   } catch (error) {
-    console.error("Error finding user by email or username:", error);
     return null;
   }
 }
@@ -270,7 +263,6 @@ export async function getServerUser() {
       _count: user._count,
     };
   } catch (error) {
-    console.error("Error getting server user:", error);
     return null;
   }
 }

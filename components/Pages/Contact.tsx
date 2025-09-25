@@ -11,6 +11,7 @@ import {
   webIcon,
   xSocialIcon,
 } from "@/icons/icon";
+import toast from "react-hot-toast";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -31,8 +32,7 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(formData);
-    alert("Mesajınız başarıyla gönderildi!");
+    toast.success("Mesajınız başarıyla gönderildi!");
     setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
