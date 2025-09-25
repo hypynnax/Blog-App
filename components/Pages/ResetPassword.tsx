@@ -24,7 +24,6 @@ function ResetPasswordForm() {
   useEffect(() => {
     // URL parametrelerinden session bilgilerini al
     const handleAuthCallback = async () => {
-      alert(searchParams);
       try {
         const { data, error } = await supabase.auth.getSession();
 
@@ -33,14 +32,17 @@ function ResetPasswordForm() {
         }
 
         // URL'den hash veya search params kontrol et
-        const code = searchParams.get("code");
+        const accessToken = searchParams.get("access_token");
+        const refreshToken = searchParams.get("refresh_token");
+        const type = searchParams.get("type");
+        alert(searchParams);
 
-        if (code) {
+        if (accessToken && refreshToken && type === "recovery") {
           // Session'ı manuel olarak set et
           const { data: sessionData, error: sessionError } =
             await supabase.auth.setSession({
-              access_token: code,
-              refresh_token: code,
+              access_token: accessToken,
+              refresh_token: refreshToken,
             });
 
           if (sessionError) {
