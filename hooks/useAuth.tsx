@@ -261,7 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       rememberMeUtils.clearRememberMe();
       setUser(null);
-      router.push("/auth/signin");
+      router.push("/giris");
     } catch (error) {}
   };
 
