@@ -18,56 +18,55 @@ function ResetPasswordForm() {
   const [checkingSession, setCheckingSession] = useState(true);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const checkSession = async () => {
+    // URL parametrelerinden session bilgilerini al
+    const handleAuthCallback = async () => {
       try {
-        // URL'den hata parametresini kontrol et
-        const error = searchParams.get("error");
-        if (error) {
-          console.log("Auth callback error:", error);
-          let errorMessage = "Şifre sıfırlama linki geçersiz.";
+        const { data, error } = await supabase.auth.getSession();
 
-          if (error === "invalid_token") {
-            errorMessage = "Geçersiz şifre sıfırlama linki!";
-          } else if (error === "callback_error") {
-            errorMessage = "Oturum işlenirken hata oluştu!";
-          } else if (error === "no_token") {
-            errorMessage = "Şifre sıfırlama token'ı bulunamadı!";
+        if (error) {
+          toast.error("Oturum hatası");
+        }
+
+        // URL'den hash veya search params kontrol et
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        const type = hashParams.get("type");
+
+        if (accessToken && refreshToken && type === "recovery") {
+          // Session'ı manuel olarak set et
+          const { data: sessionData, error: sessionError } =
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+          if (sessionError) {
+            toast.error("Session oluşturulurken hata oluştu");
+            router.push("/sifremi-unuttum");
+            return;
           }
 
-          toast.error(errorMessage);
-          setTimeout(() => {
-            router.push("/sifremi-unuttum");
-          }, 2000);
-          return;
-        }
-
-        // Session'ı kontrol et
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        console.log("Session check:", {
-          hasSession: !!session,
-          error: sessionError,
-        });
-
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          toast.error("Oturum hatası!");
-          router.push("/sifremi-unuttum");
-          return;
-        }
-
-        if (session) {
-          console.log("Valid session found for user:", session.user.id);
+          if (sessionData.session) {
+            setIsValidSession(true);
+            // URL'yi temizle
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
+          }
+        } else if (data.session) {
+          // Zaten aktif session var
           setIsValidSession(true);
         } else {
-          console.log("No valid session found");
+          // Geçersiz session
           toast.error(
             "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
           );
@@ -75,7 +74,6 @@ function ResetPasswordForm() {
           return;
         }
       } catch (error) {
-        console.error("Session check error:", error);
         toast.error("Oturum kontrol edilemedi");
         router.push("/sifremi-unuttum");
       } finally {
@@ -83,24 +81,8 @@ function ResetPasswordForm() {
       }
     };
 
-    checkSession();
-
-    // Auth state değişikliklerini dinle
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state change:", event, session?.user?.id);
-
-      if (event === "SIGNED_IN" && session) {
-        setIsValidSession(true);
-        setCheckingSession(false);
-      } else if (event === "SIGNED_OUT") {
-        router.push("/giris");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router, supabase, searchParams]);
+    handleAuthCallback();
+  }, [router, supabase]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -147,8 +129,7 @@ function ResetPasswordForm() {
         toast.error(data.error || "Şifre sıfırlanırken hata oluştu");
       }
     } catch (error) {
-      toast.error("Bağlantı hatası oluştu!");
-      toast.error("Şifre güncellenemedi!");
+      toast.error("Şifre güncellenirken bir hatası oluştu");
     } finally {
       setIsLoading(false);
     }
