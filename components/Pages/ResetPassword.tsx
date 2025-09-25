@@ -24,32 +24,29 @@ function ResetPasswordForm() {
     const handleAuthCallback = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const hashFragment = window.location.hash;
-
-        console.log("URL params:", Object.fromEntries(urlParams));
-        console.log("Hash fragment:", hashFragment);
-        console.log("Full URL:", window.location.href);
-
-        // Query parametrelerini kontrol et
-        const accessToken = urlParams.get("access_token");
-        const refreshToken = urlParams.get("refresh_token");
+        const token_hash = urlParams.get("token_hash");
         const type = urlParams.get("type");
 
-        if (accessToken || type === "recovery") {
-          console.log("Found recovery parameters in URL");
+        console.log("Token hash:", token_hash, "Type:", type);
 
-          // Session'ı manuel olarak set et
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken!,
-            refresh_token: refreshToken!,
+        if (token_hash && type === "recovery") {
+          console.log("Found recovery parameters, verifying OTP...");
+
+          // Token hash'i session'a çevir
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: "recovery",
           });
 
+          console.log("VerifyOTP result:", { data, error });
+
           if (error || !data.session) {
-            console.error("Session set error:", error);
+            console.error("Verification error:", error);
             setIsValidSession(false);
-            toast.error("Oturum oluşturulamadı. Lütfen yeni bir link isteyin.");
+            toast.error("Geçersiz veya süresi dolmuş link.");
             router.push("/sifremi-unuttum");
           } else {
+            console.log("Session created successfully:", data.session);
             setIsValidSession(true);
             // URL'yi temizle
             window.history.replaceState(
@@ -59,15 +56,15 @@ function ResetPasswordForm() {
             );
           }
         } else {
+          console.log("No recovery parameters found");
           setIsValidSession(false);
-          toast.error(
-            "Geçersiz şifre sıfırlama linki. Lütfen yeni bir link isteyin."
-          );
+          toast.error("Geçersiz şifre sıfırlama linki.");
           router.push("/sifremi-unuttum");
         }
       } catch (error) {
         console.error("Auth callback error:", error);
         setIsValidSession(false);
+        toast.error("Oturum kontrol edilemedi");
         router.push("/sifremi-unuttum");
       } finally {
         setCheckingSession(false);
