@@ -9,11 +9,9 @@ export async function POST(request: NextRequest) {
     const {
       password,
       passwordConfirm,
-      code,
     }: {
       password: string;
       passwordConfirm?: string;
-      code: string;
     } = await request.json();
 
     // Validation
@@ -55,25 +53,16 @@ export async function POST(request: NextRequest) {
 
     // Kullanıcının oturum açmış olduğunu kontrol et
     const {
-      data: { user, session },
+      data: { user },
       error,
-    } = await supabase.auth.exchangeCodeForSession(code);
+    } = await supabase.auth.getUser();
 
-    if (error) {
+    if (error || !user) {
       return NextResponse.json(
         {
           success: false,
-          error: "Geçersiz veya süresi dolmuş şifre sıfırlama kodu",
-        } as AuthResponse,
-        { status: 401 }
-      );
-    }
-
-    if (!user || !session) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Oturum oluşturulamadı",
+          error:
+            "Oturum bulunamadı. Lütfen şifre sıfırlama işlemini tekrar başlatın.",
         } as AuthResponse,
         { status: 401 }
       );

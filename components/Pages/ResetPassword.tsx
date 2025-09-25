@@ -86,7 +86,6 @@ function ResetPasswordForm() {
         body: JSON.stringify({
           password: formData.password,
           passwordConfirm: formData.passwordConfirm,
-          code: code,
         }),
       });
 
