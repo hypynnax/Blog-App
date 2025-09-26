@@ -74,7 +74,7 @@ export default function BlogCard({
 
           <div className="flex justify-center items-center">
             {viewCount > 0 && (
-              <span className="text-xs">{viewCount / 2} görüntülenme</span>
+              <span className="text-xs">{viewCount} görüntülenme</span>
             )}
 
             {_count.comments > 0 && (
